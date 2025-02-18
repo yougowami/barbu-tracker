@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Barbu Tracker - Résumé détaillé</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Font Awesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <!-- Chart.js pour les graphiques -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Remplacez ces valeurs par la configuration de votre projet Firebase
+    const firebaseConfig = {
+      apiKey: "VOTRE_API_KEY",
+      authDomain: "votre-projet.firebaseapp.com",
+      projectId: "votre-projet",
+      storageBucket: "votre-projet.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef123456"
+    };
+    // Initialise Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(app);
+  </script>
+  <style>
+    /* Styles spécifiques à la page Résumé */
+    body {
+      background: #f0f4f8;
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+    }
+    header {
+      background: #4A90E2;
+      color: #fff;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 1.8em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    main {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .breadcrumb {
+      margin: 20px 0;
+      font-size: 0.9em;
+      text-align: center;
+    }
+    .breadcrumb a {
+      color: #4A90E2;
+      text-decoration: none;
+      margin: 0 5px;
+    }
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    .resume-container {
+      background: #fff;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      animation: fadeInUp 0.5s ease-out;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1, h2, h3 {
+      color: #4A90E2;
+      text-align: center;
+    }
+    .info-section {
+      margin-bottom: 20px;
+    }
+    .info-section p {
+      font-size: 1.1em;
+      margin: 5px 0;
+    }
+    .ranking-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .ranking-table th, .ranking-table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .ranking-table th {
+      background: #4A90E2;
+      color: #fff;
+    }
+    .detail-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .detail-list li {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .detail-list li:last-child {
+      border-bottom: none;
+    }
+    .quote-section {
+      background: #e8f0fe;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-style: italic;
+      text-align: center;
+      color: #4A90E2;
+    }
+    .back-button {
+      display: inline-block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #4A90E2;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+      text-align: center;
+    }
+    .back-button:hover {
+      background: #357ABD;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Résumé détaillé
+  </header>
+  <main>
+    <nav class="breadcrumb">
+      <a href="index.html"><i class="fas fa-home"></i> Accueil</a> &gt;
+      <span id="breadcrumb-current">Résumé</span>
+    </nav>
+    <div class="resume-container" id="resume-content">
+      <!-- Contenu injecté dynamiquement par resume.js -->
+    </div>
+    <p style="text-align:center;"><a class="back-button" href="index.html"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a></p>
+  </main>
+  <script src="resume.js"></script>
+</body>
+</html>
