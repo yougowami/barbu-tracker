@@ -1,73 +1,133 @@
-// admin.js
-document.addEventListener('DOMContentLoaded', () => {
-  // Fonction pour charger toutes les parties depuis Firestore
-  async function loadParties() {
-    try {
-      const partiesSnapshot = await db.collection('parties').get();
-      const parties = partiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      return parties;
-    } catch (err) {
-      console.error("Erreur lors du chargement des parties :", err);
-      return [];
-    }
-  }
-
-  // Fonction pour afficher la liste des parties dans l'interface admin
-  function renderDataList(parties) {
-    const dataList = document.getElementById('data-list');
-    dataList.innerHTML = '';
-    parties.forEach(party => {
-      const li = document.createElement('li');
-      li.textContent = `Partie ID: ${party.id} - Session ID: ${party.sessionId} - Status: ${party.finished ? 'Terminée' : 'Active'}`;
-      dataList.appendChild(li);
-    });
-  }
-
-  // Fonction pour ajouter une nouvelle partie dans Firestore
-  async function ajouterPartie(nouvellePartie) {
-    try {
-      await db.collection('parties').add(nouvellePartie);
-      alert("Partie ajoutée avec succès !");
-    } catch (err) {
-      console.error("Erreur lors de l'ajout de la partie :", err);
-      alert("Erreur lors de l'ajout de la partie.");
-    }
-  }
-
-  // Gestion de la soumission du formulaire pour ajouter une partie
-  const addPartyForm = document.getElementById('add-party-form');
-  addPartyForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const sessionId = document.getElementById('session-id').value.trim();
-    const scoresText = document.getElementById('player-scores').value.trim();
-    const finishedValue = document.getElementById('finished').value;
-    const finished = finishedValue === 'true';
-
-    // Parse des scores, ex: "Hugo:50, Léo:30" devient { Hugo: 50, Léo: 30 }
-    const scores = {};
-    scoresText.split(',').forEach(item => {
-      const [player, score] = item.split(':');
-      if (player && score) {
-        scores[player.trim()] = parseFloat(score.trim());
-      }
-    });
-
-    const nouvellePartie = {
-      sessionId: sessionId,
-      scores: scores,
-      finished: finished,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Barbu Tracker - Administration</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Font Awesome pour les icônes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <!-- Optionnel: Chart.js si besoin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Remplacez ces valeurs par la configuration de votre projet Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
+      authDomain: "barbutracker.firebaseapp.com",
+      projectId: "barbutracker",
+      storageBucket: "barbutracker.firebasestorage.app",
+      messagingSenderId: "548445703266",
+      appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
+      measurementId: "G-7DQ3P4SQNJ"
     };
+    // Initialise Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(app);
+  </script>
+  <style>
+    /* Styles pour l'administration */
+    body {
+      background: #eef2f7;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    header {
+      background: #4A90E2;
+      color: #fff;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 2em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    main {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .admin-container {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #4A90E2;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    form label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    form input, form select, form textarea, form button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    form button {
+      background: #4A90E2;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    form button:hover {
+      background: #357ABD;
+    }
+    .data-section {
+      margin-top: 40px;
+    }
+    .data-section h3 {
+      color: #4A90E2;
+      margin-bottom: 10px;
+    }
+    .data-list {
+      list-style: none;
+      padding: 0;
+    }
+    .data-list li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Barbu Tracker - Administration
+  </header>
+  <main>
+    <div class="admin-container">
+      <h2>Ajouter une nouvelle partie</h2>
+      <form id="add-party-form">
+        <label for="session-id">ID de session :</label>
+        <input type="text" id="session-id" placeholder="Entrez l'ID de session" required>
+        
+        <label for="player-scores">Scores (format: nom:score, séparés par des virgules) :</label>
+        <textarea id="player-scores" placeholder="Ex: Hugo:50, Léo:30" required></textarea>
+        
+        <label for="finished">Partie terminée ? :</label>
+        <select id="finished">
+          <option value="true">Oui</option>
+          <option value="false" selected>Non</option>
+        </select>
+        
+        <button type="submit">Ajouter Partie</button>
+      </form>
 
-    await ajouterPartie(nouvellePartie);
-    addPartyForm.reset();
-    // Recharge et affiche la liste des parties
-    const parties = await loadParties();
-    renderDataList(parties);
-  });
-
-  // Chargement initial des données
-  loadParties().then(parties => {
-    renderDataList(parties);
-  });
-});
+      <div class="data-section">
+        <h3>Données actuelles (Parties)</h3>
+        <ul class="data-list" id="data-list"></ul>
+      </div>
+    </div>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>
