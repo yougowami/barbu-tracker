@@ -1,17 +1,18 @@
 // admin.js
 document.addEventListener('DOMContentLoaded', () => {
-  // Charge les parties depuis Firestore, triées par date de création (desc)
-  async function loadParties() {
+
+  // Charger les saisons depuis Firestore
+  async function loadSeasons() {
     try {
-      const snapshot = await db.collection('parties').orderBy('createdAt', 'desc').get();
+      const snapshot = await db.collection('saisons').orderBy('nom').get();
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (err) {
-      console.error("Erreur lors du chargement des parties :", err);
+      console.error("Erreur lors du chargement des saisons :", err);
       return [];
     }
   }
 
-  // Charge les sessions depuis Firestore, triées par date (desc)
+  // Charger les sessions depuis Firestore
   async function loadSessions() {
     try {
       const snapshot = await db.collection('sessions').orderBy('date', 'desc').get();
@@ -22,18 +23,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Charge les saisons depuis Firestore, triées par nom (asc)
-  async function loadSaisons() {
+  // Charger les parties depuis Firestore
+  async function loadParties() {
     try {
-      const snapshot = await db.collection('saisons').orderBy('nom').get();
+      const snapshot = await db.collection('parties').orderBy('createdAt', 'desc').get();
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (err) {
-      console.error("Erreur lors du chargement des saisons :", err);
+      console.error("Erreur lors du chargement des parties :", err);
       return [];
     }
   }
 
-  // Affiche la liste des parties avec un bouton de suppression pour chaque item
+  // Afficher la liste des saisons
+  function renderSeasonList(seasons) {
+    const listEl = document.getElementById('season-list');
+    listEl.innerHTML = '';
+    seasons.forEach(season => {
+      const li = document.createElement('li');
+      li.textContent = `Saison: ${season.nom} (ID: ${season.id}) | ${season.finished ? 'Terminée' : 'Active'}`;
+      const btn = document.createElement('button');
+      btn.textContent = 'Supprimer';
+      btn.classList.add('delete-btn');
+      btn.addEventListener('click', () => {
+        if (confirm(`Voulez-vous supprimer la saison "${season.nom}" ?`)) {
+          deleteSeason(season.id);
+        }
+      });
+      li.appendChild(btn);
+      listEl.appendChild(li);
+    });
+  }
+
+  // Afficher la liste des sessions
+  function renderSessionList(sessions) {
+    const listEl = document.getElementById('session-list');
+    listEl.innerHTML = '';
+    sessions.forEach(session => {
+      const li = document.createElement('li');
+      li.textContent = `Session: ${session.date} (ID: ${session.id}) | ${session.finished ? 'Terminée' : 'Active'} | Saison ID: ${session.saisonId}`;
+      const btn = document.createElement('button');
+      btn.textContent = 'Supprimer';
+      btn.classList.add('delete-btn');
+      btn.addEventListener('click', () => {
+        if (confirm(`Voulez-vous supprimer la session du ${session.date} ?`)) {
+          deleteSession(session.id);
+        }
+      });
+      li.appendChild(btn);
+      listEl.appendChild(li);
+    });
+  }
+
+  // Afficher la liste des parties
   function renderPartyList(parties) {
     const listEl = document.getElementById('party-list');
     listEl.innerHTML = '';
@@ -53,54 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Affiche la liste des sessions avec bouton de suppression
-  function renderSessionList(sessions) {
-    const listEl = document.getElementById('session-list');
-    listEl.innerHTML = '';
-    sessions.forEach(session => {
-      const li = document.createElement('li');
-      li.textContent = `Session ID: ${session.id} | Date: ${session.date} | ${session.finished ? 'Terminée' : 'Active'}`;
-      const btn = document.createElement('button');
-      btn.textContent = 'Supprimer';
-      btn.classList.add('delete-btn');
-      btn.addEventListener('click', () => {
-        if (confirm(`Voulez-vous supprimer la session ${session.id} ?`)) {
-          deleteSession(session.id);
-        }
-      });
-      li.appendChild(btn);
-      listEl.appendChild(li);
-    });
-  }
-
-  // Affiche la liste des saisons avec bouton de suppression
-  function renderSaisonList(saisons) {
-    const listEl = document.getElementById('saison-list');
-    listEl.innerHTML = '';
-    saisons.forEach(saison => {
-      const li = document.createElement('li');
-      li.textContent = `Saison: ${saison.nom} (ID: ${saison.id}) | ${saison.finished ? 'Terminée' : 'Active'}`;
-      const btn = document.createElement('button');
-      btn.textContent = 'Supprimer';
-      btn.classList.add('delete-btn');
-      btn.addEventListener('click', () => {
-        if (confirm(`Voulez-vous supprimer la saison ${saison.nom} ?`)) {
-          deleteSaison(saison.id);
-        }
-      });
-      li.appendChild(btn);
-      listEl.appendChild(li);
-    });
-  }
-
-  // Supprimer une partie
-  async function deleteParty(id) {
+  // Supprimer une saison
+  async function deleteSeason(id) {
     try {
-      await db.collection('parties').doc(id).delete();
-      alert("Partie supprimée.");
+      await db.collection('saisons').doc(id).delete();
+      alert("Saison supprimée.");
       refreshLists();
     } catch (err) {
-      console.error("Erreur lors de la suppression de la partie :", err);
+      console.error("Erreur lors de la suppression de la saison :", err);
       alert("Erreur lors de la suppression.");
     }
   }
@@ -117,37 +118,85 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Supprimer une saison
-  async function deleteSaison(id) {
+  // Supprimer une partie
+  async function deleteParty(id) {
     try {
-      await db.collection('saisons').doc(id).delete();
-      alert("Saison supprimée.");
+      await db.collection('parties').doc(id).delete();
+      alert("Partie supprimée.");
       refreshLists();
     } catch (err) {
-      console.error("Erreur lors de la suppression de la saison :", err);
+      console.error("Erreur lors de la suppression de la partie :", err);
       alert("Erreur lors de la suppression.");
     }
   }
 
-  // Rafraîchit les listes de parties, sessions et saisons
+  // Rafraîchir toutes les listes
   async function refreshLists() {
-    const parties = await loadParties();
-    renderPartyList(parties);
+    const seasons = await loadSeasons();
+    renderSeasonList(seasons);
     const sessions = await loadSessions();
     renderSessionList(sessions);
-    const saisons = await loadSaisons();
-    renderSaisonList(saisons);
+    const parties = await loadParties();
+    renderPartyList(parties);
+  }
+
+  // Gestion du formulaire d'ajout d'une nouvelle saison
+  const addSeasonForm = document.getElementById('add-season-form');
+  addSeasonForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nom = document.getElementById('season-name').value.trim();
+    const finished = document.getElementById('season-finished').value === 'true';
+    const newSeason = {
+      nom: nom,
+      finished: finished,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    try {
+      await db.collection('saisons').add(newSeason);
+      alert("Saison ajoutée avec succès !");
+      addSeasonForm.reset();
+      refreshLists();
+    } catch (err) {
+      console.error("Erreur lors de l'ajout de la saison :", err);
+      alert("Erreur lors de l'ajout.");
+    }
+  });
+
+  // Gestion du formulaire d'ajout d'une nouvelle session
+  const addSessionForm = document.getElementById('add-session-form');
+  if(addSessionForm) {
+    addSessionForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const date = document.getElementById('session-date').value.trim();
+      const saisonId = document.getElementById('session-season').value.trim();
+      const finished = document.getElementById('session-finished').value === 'true';
+      const newSession = {
+        date: date,
+        saisonId: saisonId,
+        finished: finished,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try {
+        await db.collection('sessions').add(newSession);
+        alert("Session ajoutée avec succès !");
+        addSessionForm.reset();
+        refreshLists();
+      } catch (err) {
+        console.error("Erreur lors de l'ajout de la session :", err);
+        alert("Erreur lors de l'ajout.");
+      }
+    });
   }
 
   // Gestion du formulaire d'ajout d'une nouvelle partie
   const addPartyForm = document.getElementById('add-party-form');
   addPartyForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const sessionId = document.getElementById('session-id').value.trim();
-    const scoresText = document.getElementById('player-scores').value.trim();
-    const finished = document.getElementById('finished').value === 'true';
+    const sessionId = document.getElementById('party-session').value.trim();
+    const scoresText = document.getElementById('party-scores').value.trim();
+    const finished = document.getElementById('party-finished').value === 'true';
 
-    // Parse les scores (format : "Hugo:50, Léo:30")
+    // Parse des scores (format "Hugo:50, Léo:30")
     const scores = {};
     scoresText.split(',').forEach(item => {
       const [player, score] = item.split(':');
