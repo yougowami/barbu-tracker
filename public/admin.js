@@ -1,7 +1,7 @@
 // admin.js
 document.addEventListener('DOMContentLoaded', () => {
-  
-  // Charger les saisons depuis Firestore
+
+  // Charge les saisons depuis Firestore
   async function loadSeasons() {
     try {
       const snapshot = await db.collection('saisons').orderBy('nom').get();
@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return [];
     }
   }
-  
-  // Charger les sessions depuis Firestore
+
+  // Charge les sessions depuis Firestore
   async function loadSessions() {
     try {
       const snapshot = await db.collection('sessions').orderBy('date', 'desc').get();
@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return [];
     }
   }
-  
-  // Charger les parties depuis Firestore
+
+  // Charge les parties depuis Firestore
   async function loadParties() {
     try {
       const snapshot = await db.collection('parties').orderBy('createdAt', 'desc').get();
@@ -33,8 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return [];
     }
   }
-  
-  // Remplit les dropdowns pour les formulaires de session et de partie
+
+  // Remplit les dropdowns pour le formulaire de session et de partie
   async function populateDropdowns() {
     const seasons = await loadSeasons();
     const seasonSelect = document.getElementById('sessionSeason');
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     seasons.forEach(season => {
       seasonSelect.innerHTML += `<option value="${season.id}">${season.nom}</option>`;
     });
-    
+
     const sessions = await loadSessions();
     const sessionSelect = document.getElementById('partySession');
     sessionSelect.innerHTML = '<option value="">-- Sélectionnez une session --</option>';
@@ -50,18 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionSelect.innerHTML += `<option value="${session.id}">${session.date}</option>`;
     });
   }
-  
-  // Fonction générique d'ajout d'un document
+
+  // Fonction générique d'ajout d'un document dans une collection
   async function addDocument(collectionName, data) {
     try {
       await db.collection(collectionName).add(data);
-      alert(`Ajout dans ${collectionName} réussi !`);
+      alert(`Ajout dans "${collectionName}" réussi !`);
     } catch (error) {
-      console.error("Erreur :", error);
+      console.error("Erreur lors de l'ajout dans " + collectionName + ":", error);
       alert("Erreur lors de l'ajout.");
     }
   }
-  
+
   // Gestion du formulaire d'ajout d'une saison
   const seasonForm = document.getElementById('seasonForm');
   seasonForm.addEventListener('submit', async (e) => {
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDropdowns();
     refreshDataList();
   });
-  
+
   // Gestion du formulaire d'ajout d'une session
   const sessionForm = document.getElementById('sessionForm');
   sessionForm.addEventListener('submit', async (e) => {
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     populateDropdowns();
     refreshDataList();
   });
-  
+
   // Gestion du formulaire d'ajout d'une partie
   const partyForm = document.getElementById('partyForm');
   partyForm.addEventListener('submit', async (e) => {
@@ -136,34 +136,33 @@ document.addEventListener('DOMContentLoaded', () => {
     partyForm.reset();
     refreshDataList();
   });
-  
-  // Affiche la liste globale des données
+
+  // Affichage global des données
   async function refreshDataList() {
     const seasons = await loadSeasons();
     const sessions = await loadSessions();
     const parties = await loadParties();
-    
+
     const listEl = document.getElementById('dataList');
     listEl.innerHTML = "";
-    
     listEl.innerHTML += "<li><strong>Saisons :</strong></li>";
     seasons.forEach(season => {
-      listEl.innerHTML += `<li>Saison: ${season.nom} | Fin: ${season.endDate} | ${season.finished ? "Terminée" : "Active"} | ID: ${season.id}
+      listEl.innerHTML += `<li>Saison: ${season.nom} | Fin: ${season.endDate} | ${season.finished ? "Terminée" : "Active"} | ID: ${season.id} 
       <button class="delete-btn" onclick="deleteSeason('${season.id}')">Supprimer</button></li>`;
     });
     listEl.innerHTML += "<li><strong>Sessions :</strong></li>";
     sessions.forEach(session => {
-      listEl.innerHTML += `<li>Session: ${session.date} | Saison ID: ${session.saisonId} | ${session.finished ? "Terminée" : "Active"} | ID: ${session.id}
+      listEl.innerHTML += `<li>Session: ${session.date} | Saison ID: ${session.saisonId} | ${session.finished ? "Terminée" : "Active"} | ID: ${session.id} 
       <button class="delete-btn" onclick="deleteSession('${session.id}')">Supprimer</button></li>`;
     });
     listEl.innerHTML += "<li><strong>Parties :</strong></li>";
     parties.forEach(party => {
-      listEl.innerHTML += `<li>Partie ID: ${party.id} | Session ID: ${party.sessionId} | ${party.finished ? "Terminée" : "Active"} | Scores: ${JSON.stringify(party.scores)}
+      listEl.innerHTML += `<li>Partie ID: ${party.id} | Session ID: ${party.sessionId} | ${party.finished ? "Terminée" : "Active"} | Scores: ${JSON.stringify(party.scores)} 
       <button class="delete-btn" onclick="deleteParty('${party.id}')">Supprimer</button></li>`;
     });
   }
-  
-  // Fonctions de suppression exposées globalement
+
+  // Fonctions de suppression, exposées globalement
   window.deleteSeason = async function(id) {
     if (confirm("Voulez-vous vraiment supprimer cette saison ?")) {
       try {
@@ -172,12 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
         populateDropdowns();
         refreshDataList();
       } catch (error) {
-        console.error("Erreur lors de la suppression de la saison :", error);
+        console.error("Erreur lors de la suppression de la saison:", error);
         alert("Erreur lors de la suppression.");
       }
     }
   };
-  
+
   window.deleteSession = async function(id) {
     if (confirm("Voulez-vous vraiment supprimer cette session ?")) {
       try {
@@ -186,12 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
         populateDropdowns();
         refreshDataList();
       } catch (error) {
-        console.error("Erreur lors de la suppression de la session :", error);
+        console.error("Erreur lors de la suppression de la session:", error);
         alert("Erreur lors de la suppression.");
       }
     }
   };
-  
+
   window.deleteParty = async function(id) {
     if (confirm("Voulez-vous vraiment supprimer cette partie ?")) {
       try {
@@ -199,12 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Partie supprimée.");
         refreshDataList();
       } catch (error) {
-        console.error("Erreur lors de la suppression de la partie :", error);
+        console.error("Erreur lors de la suppression de la partie:", error);
         alert("Erreur lors de la suppression.");
       }
     }
   };
-  
+
   // Initialisation
   populateDropdowns();
   refreshDataList();

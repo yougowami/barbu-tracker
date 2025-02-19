@@ -1,6 +1,6 @@
 // public.js
 document.addEventListener('DOMContentLoaded', () => {
-  
+
   // Charge les données depuis Firestore
   async function loadData() {
     try {
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('weekly-summary').textContent = `${weeklyParties.length}`;
   }
   
-  // Met à jour les informations de la saison en cours (date de fin et temps restant)
+  // Met à jour les informations de la saison en cours : date de fin et temps restant
   function updateSeasonInfo(data) {
     const now = new Date();
     const currentSeasons = data.saisons.filter(season => !season.finished && new Date(season.endDate) >= now);
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Calcule les succès globaux (achievements)
+  // Calcule et affiche les succès (achievements)
   function computeAchievements(data) {
     const aggregatedScores = {};
     const defeatCounts = {};
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mostWins').innerHTML = `<p>Le joueur ayant le plus de victoires: ${mostWinsPlayer} (${mostWins})</p>`;
   }
   
-  // Met à jour le leaderboard de la saison et général
+  // Met à jour les leaderboards
   function updateLeaderboards(data) {
     const now = new Date();
     // Leaderboard de la saison en cours
@@ -164,9 +164,9 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         });
       });
-      const seasonRanking = Object.entries(seasonScores).sort((a, b) => a[1] - b[1]); // moins de points = meilleur
+      const seasonRanking = Object.entries(seasonScores).sort((a, b) => a[1] - b[1]);
       if (seasonRanking.length === 0) {
-        seasonLeaderboardHTML = "Aucun score disponible pour la saison en cours.";
+        seasonLeaderboardHTML = "Aucun score pour la saison en cours.";
       } else {
         seasonLeaderboardHTML = "<ul>";
         seasonRanking.forEach(([player, score], index) => {
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('season-leaderboard-content').textContent = "Aucune saison en cours.";
     }
     
-    // Leaderboard général (toutes parties terminées)
+    // Leaderboard général
     let generalScores = {};
     data.parties.filter(p => p.finished).forEach(party => {
       Object.entries(party.scores).forEach(([player, score]) => {
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('general-leaderboard-content').innerHTML = generalLeaderboardHTML;
   }
   
-  // Met à jour les résultats de la dernière partie terminée
+  // Affiche les résultats de la dernière partie terminée
   function updateLastParty(data) {
     const finishedParties = data.parties.filter(party => party.finished);
     if (finishedParties.length === 0) {
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('last-party-results').innerHTML = html;
   }
   
-  // Fonction principale pour mettre à jour le dashboard
+  // Fonction principale pour mettre à jour l'ensemble du dashboard
   async function renderDashboard() {
     const data = await loadData();
     updateDailyWeeklyStats(data);

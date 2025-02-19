@@ -6,11 +6,11 @@
   <link rel="stylesheet" href="styles.css">
   <!-- Font Awesome pour les icônes -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <!-- Firebase SDK (versions compat pour une intégration simple) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script>
-    // Remplacez ces valeurs par celles de votre projet Firebase
+    // Configuration Firebase (remplacez par vos valeurs)
     const firebaseConfig = {
       apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
       authDomain: "barbutracker.firebaseapp.com",
@@ -20,12 +20,12 @@
       appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
       measurementId: "G-7DQ3P4SQNJ"
     };
-    // Initialise Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(app);
+    // Initialisation
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
   </script>
   <style>
-    /* Styles de base pour l'administration */
+    /* Styles simplifiés et intuitifs */
     body {
       font-family: Arial, sans-serif;
       background: #eef2f7;
@@ -37,37 +37,36 @@
       color: #4A90E2;
       margin-bottom: 20px;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .form-section {
+    .admin-container {
       background: #fff;
       padding: 15px;
-      margin: 15px 0;
+      margin: 15px auto;
       border-radius: 8px;
+      max-width: 500px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .form-section h2 {
+    .admin-container h2 {
       text-align: center;
       color: #4A90E2;
       margin-bottom: 10px;
     }
-    .form-section form {
-      display: flex;
-      flex-direction: column;
+    form {
+      margin-bottom: 15px;
     }
-    .form-section label {
+    form label {
       font-weight: bold;
+      display: block;
       margin-top: 10px;
     }
-    .form-section input, .form-section select {
+    form input, form select {
+      width: 100%;
       padding: 8px;
       margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      box-sizing: border-box;
     }
-    .form-section button {
+    form button {
       margin-top: 15px;
       padding: 10px;
       background: #4A90E2;
@@ -76,14 +75,15 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    .form-section button:hover {
+    form button:hover {
       background: #357ABD;
     }
     .data-section {
       background: #fff;
       padding: 15px;
-      margin: 15px 0;
+      margin: 15px auto;
       border-radius: 8px;
+      max-width: 500px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .data-section h2 {
@@ -94,6 +94,7 @@
     .data-list {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
     .data-list li {
       padding: 10px;
@@ -120,59 +121,52 @@
 </head>
 <body>
   <h1>Administration - Barbu Tracker</h1>
-  <div class="container">
-    <!-- Formulaire d'ajout d'une saison -->
-    <div class="form-section">
-      <h2>Ajouter une Saison</h2>
-      <form id="seasonForm">
-        <label for="seasonName">Nom de la saison :</label>
-        <input type="text" id="seasonName" placeholder="Ex: Saison 2023" required>
-        <label for="seasonEnd">Date de fin :</label>
-        <input type="date" id="seasonEnd" required>
-        <button type="submit">Ajouter Saison</button>
-      </form>
-    </div>
-    
-    <!-- Formulaire d'ajout d'une session -->
-    <div class="form-section">
-      <h2>Ajouter une Session</h2>
-      <form id="sessionForm">
-        <label for="sessionDateTime">Date et heure :</label>
-        <input type="datetime-local" id="sessionDateTime" required>
-        <label for="sessionSeason">Sélectionnez une saison :</label>
-        <select id="sessionSeason" required>
-          <option value="">-- Sélectionnez une saison --</option>
-        </select>
-        <button type="submit">Ajouter Session</button>
-      </form>
-    </div>
-    
-    <!-- Formulaire d'ajout d'une partie -->
-    <div class="form-section">
-      <h2>Ajouter une Partie</h2>
-      <form id="partyForm">
-        <label for="partySession">Sélectionnez une session :</label>
-        <select id="partySession" required>
-          <option value="">-- Sélectionnez une session --</option>
-        </select>
-        <label for="hugoScore">Score Hugo :</label>
-        <input type="number" id="hugoScore" placeholder="Ex: 50" required>
-        <label for="leoScore">Score Léo :</label>
-        <input type="number" id="leoScore" placeholder="Ex: 30" required>
-        <label for="gabrielScore">Score Gabriel :</label>
-        <input type="number" id="gabrielScore" placeholder="Ex: 25" required>
-        <label for="guillaumeScore">Score Guillaume :</label>
-        <input type="number" id="guillaumeScore" placeholder="Ex: 40" required>
-        <button type="submit">Ajouter Partie</button>
-      </form>
-    </div>
-    
-    <!-- Section d'affichage des données -->
-    <div class="data-section">
-      <h2>Données Actuelles</h2>
-      <ul class="data-list" id="dataList"></ul>
-    </div>
+  <div class="admin-container">
+    <h2>Ajouter une Saison</h2>
+    <form id="seasonForm">
+      <label for="seasonName">Nom de la saison :</label>
+      <input type="text" id="seasonName" placeholder="Ex: Saison 2023" required>
+      <label for="seasonEnd">Date de fin :</label>
+      <input type="date" id="seasonEnd" required>
+      <button type="submit">Ajouter Saison</button>
+    </form>
   </div>
+  <div class="admin-container">
+    <h2>Ajouter une Session</h2>
+    <form id="sessionForm">
+      <label for="sessionDateTime">Date et heure :</label>
+      <input type="datetime-local" id="sessionDateTime" required>
+      <label for="sessionSeason">Sélectionnez une Saison :</label>
+      <select id="sessionSeason" required>
+        <option value="">-- Sélectionnez une saison --</option>
+      </select>
+      <button type="submit">Ajouter Session</button>
+    </form>
+  </div>
+  <div class="admin-container">
+    <h2>Ajouter une Partie</h2>
+    <form id="partyForm">
+      <label for="partySession">Sélectionnez une Session :</label>
+      <select id="partySession" required>
+        <option value="">-- Sélectionnez une session --</option>
+      </select>
+      <label for="hugoScore">Score Hugo :</label>
+      <input type="number" id="hugoScore" placeholder="Ex: 50" required>
+      <label for="leoScore">Score Léo :</label>
+      <input type="number" id="leoScore" placeholder="Ex: 30" required>
+      <label for="gabrielScore">Score Gabriel :</label>
+      <input type="number" id="gabrielScore" placeholder="Ex: 25" required>
+      <label for="guillaumeScore">Score Guillaume :</label>
+      <input type="number" id="guillaumeScore" placeholder="Ex: 40" required>
+      <button type="submit">Ajouter Partie</button>
+    </form>
+  </div>
+  
+  <div class="data-section">
+    <h2>Données Actuelles</h2>
+    <ul class="data-list" id="dataList"></ul>
+  </div>
+  
   <script src="admin.js"></script>
 </body>
 </html>
