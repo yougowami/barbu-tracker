@@ -2,76 +2,67 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Barbu Tracker - Administration</title>
+  <title>Admin - Barbu Tracker</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Font Awesome pour les icônes -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
-  <!-- Optionnel: Chart.js si besoin -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     // Remplacez ces valeurs par la configuration de votre projet Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
-      authDomain: "barbutracker.firebaseapp.com",
-      projectId: "barbutracker",
-      storageBucket: "barbutracker.firebasestorage.app",
-      messagingSenderId: "548445703266",
-      appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
-      measurementId: "G-7DQ3P4SQNJ"
+      apiKey: "VOTRE_API_KEY",
+      authDomain: "votre-projet.firebaseapp.com",
+      projectId: "votre-projet",
+      storageBucket: "votre-projet.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef123456"
     };
-    // Initialise Firebase
+    // Initialisation Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore(app);
   </script>
   <style>
-    /* Styles pour l'administration */
+    /* Styles simples et intuitifs pour l'administration */
     body {
-      background: #eef2f7;
       font-family: Arial, sans-serif;
+      background: #eef2f7;
       margin: 0;
-    }
-    header {
-      background: #4A90E2;
-      color: #fff;
-      padding: 15px 20px;
-      text-align: center;
-      font-size: 2em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    main {
-      max-width: 1200px;
-      margin: 20px auto;
       padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #4A90E2;
     }
     .admin-container {
       background: #fff;
+      padding: 15px;
+      margin: 20px auto;
       border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 500px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    h2 {
-      color: #4A90E2;
+    .admin-container h2 {
       text-align: center;
-      margin-bottom: 20px;
+      color: #4A90E2;
+      margin-bottom: 15px;
     }
     form {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     form label {
       font-weight: bold;
-      margin-top: 10px;
       display: block;
+      margin-top: 10px;
     }
     form input, form select, form textarea, form button {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
+      padding: 8px;
+      margin: 5px 0;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1em;
+      box-sizing: border-box;
     }
     form button {
       background: #4A90E2;
@@ -83,51 +74,103 @@
       background: #357ABD;
     }
     .data-section {
-      margin-top: 40px;
+      margin-top: 30px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .data-section h3 {
+    .data-section h2 {
+      text-align: center;
       color: #4A90E2;
       margin-bottom: 10px;
     }
     .data-list {
       list-style: none;
       padding: 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+      max-width: 500px;
+      margin: auto;
     }
     .data-list li {
       padding: 10px;
       border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .data-list li:last-child {
+      border-bottom: none;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: #c0392b;
     }
   </style>
 </head>
 <body>
-  <header>
-    Barbu Tracker - Administration
-  </header>
-  <main>
-    <div class="admin-container">
-      <h2>Ajouter une nouvelle partie</h2>
-      <form id="add-party-form">
-        <label for="session-id">ID de session :</label>
-        <input type="text" id="session-id" placeholder="Entrez l'ID de session" required>
-        
-        <label for="player-scores">Scores (format: nom:score, séparés par des virgules) :</label>
-        <textarea id="player-scores" placeholder="Ex: Hugo:50, Léo:30" required></textarea>
-        
-        <label for="finished">Partie terminée ? :</label>
-        <select id="finished">
-          <option value="true">Oui</option>
-          <option value="false" selected>Non</option>
-        </select>
-        
-        <button type="submit">Ajouter Partie</button>
-      </form>
-
-      <div class="data-section">
-        <h3>Données actuelles (Parties)</h3>
-        <ul class="data-list" id="data-list"></ul>
-      </div>
-    </div>
-  </main>
+  <h1>Administration - Barbu Tracker</h1>
+  
+  <!-- Formulaire pour ajouter une saison -->
+  <div class="admin-container">
+    <h2>Ajouter une Saison</h2>
+    <form id="seasonForm">
+      <label for="seasonName">Nom de la saison :</label>
+      <input type="text" id="seasonName" placeholder="Nom de la saison" required>
+      <label for="seasonEnd">Date de fin :</label>
+      <input type="date" id="seasonEnd" required>
+      <button type="submit">Ajouter Saison</button>
+    </form>
+  </div>
+  
+  <!-- Formulaire pour ajouter une session -->
+  <div class="admin-container">
+    <h2>Ajouter une Session</h2>
+    <form id="sessionForm">
+      <label for="sessionDateTime">Date et heure :</label>
+      <input type="datetime-local" id="sessionDateTime" required>
+      <label for="sessionSeason">Sélectionnez une saison :</label>
+      <select id="sessionSeason" required>
+        <option value="">-- Sélectionnez une saison --</option>
+      </select>
+      <button type="submit">Ajouter Session</button>
+    </form>
+  </div>
+  
+  <!-- Formulaire pour ajouter une partie -->
+  <div class="admin-container">
+    <h2>Ajouter une Partie</h2>
+    <form id="partyForm">
+      <label for="partySession">Sélectionnez une session :</label>
+      <select id="partySession" required>
+        <option value="">-- Sélectionnez une session --</option>
+      </select>
+      <label for="hugoScore">Score Hugo :</label>
+      <input type="number" id="hugoScore" placeholder="Score Hugo" required>
+      <label for="leoScore">Score Léo :</label>
+      <input type="number" id="leoScore" placeholder="Score Léo" required>
+      <label for="gabrielScore">Score Gabriel :</label>
+      <input type="number" id="gabrielScore" placeholder="Score Gabriel" required>
+      <label for="guillaumeScore">Score Guillaume :</label>
+      <input type="number" id="guillaumeScore" placeholder="Score Guillaume" required>
+      <button type="submit">Ajouter Partie</button>
+    </form>
+  </div>
+  
+  <!-- Section d'affichage des données globales -->
+  <div class="data-section">
+    <h2>Données Actuelles</h2>
+    <ul class="data-list" id="dataList"></ul>
+  </div>
+  
   <script src="admin.js"></script>
 </body>
 </html>
