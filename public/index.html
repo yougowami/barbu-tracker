@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <title>Barbu Tracker - Tableau de Bord</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Font Awesome pour les icônes -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
-  <!-- Optionnel: Chart.js si besoin -->
+  <!-- Chart.js (optionnel) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Remplacez ces valeurs par la configuration de votre projet Firebase
+    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
       authDomain: "barbutracker.firebaseapp.com",
@@ -22,24 +22,23 @@
       appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
       measurementId: "G-7DQ3P4SQNJ"
     };
-    // Initialise Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore(app);
   </script>
   <style>
-    /* --- Styles communs et animations --- */
+    /* Animations */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     body {
-      background: #eef2f7;
+      background: #f0f4f8;
       margin: 0;
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
     }
     header {
       background: #4A90E2;
-      color: #fff;
+      color: white;
       padding: 20px;
       text-align: center;
       font-size: 2em;
@@ -60,16 +59,12 @@
       text-decoration: none;
       margin: 0 5px;
     }
-    .breadcrumb a:hover {
-      text-decoration: underline;
-    }
     section {
       margin-bottom: 40px;
     }
     section h2 {
       color: #4A90E2;
-      border-bottom: 3px solid #4A90E2;
-      display: inline-block;
+      border-bottom: 2px solid #4A90E2;
       padding-bottom: 5px;
       margin-bottom: 20px;
       text-align: center;
@@ -80,13 +75,13 @@
       gap: 20px;
     }
     .card {
-      background: #fff;
+      background: white;
       border-radius: 8px;
       padding: 20px;
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       animation: fadeInUp 0.5s ease-out;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     .card:hover {
       transform: translateY(-5px);
@@ -106,102 +101,32 @@
       font-size: 1.4em;
       color: #555;
     }
-    /* --- Historique --- */
-    .history-section .detail-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .history-section .detail-list li {
+    /* Saison en cours */
+    .season-info {
+      background: #d1e7dd;
       padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
-    .history-section .detail-list li a {
-      text-decoration: none;
-      color: #4A90E2;
-    }
-    .history-section .detail-list li a:hover {
-      text-decoration: underline;
-    }
-    .search-bar {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .search-bar input,
-    .search-bar select,
-    .search-bar button {
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .search-bar button {
-      background: #4A90E2;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    .search-bar button:hover {
-      background: #357ABD;
-    }
-    /* --- Extra fonctionnalités --- */
-    .extra-features {
-      text-align: center;
-      margin-top: 30px;
-    }
-    .extra-features p {
-      color: #666;
-      font-size: 0.9em;
-    }
-    .extra-features button {
-      margin: 5px;
-      padding: 10px 15px;
-      background: #4A90E2;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .extra-features button:hover {
-      background: #357ABD;
-    }
-    .quote-section {
-      background: #e8f0fe;
-      padding: 15px;
       border-radius: 6px;
-      margin: 20px 0;
+      color: #0f5132;
+    }
+    /* Achievements */
+    .achievement {
+      background: #e8f0fe;
+      padding: 10px;
+      border-radius: 6px;
       font-style: italic;
-      text-align: center;
       color: #4A90E2;
-    }
-    .back-button {
-      display: inline-block;
-      margin: 20px auto;
-      padding: 10px 20px;
-      background: #4A90E2;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 4px;
-      transition: background 0.3s;
-    }
-    .back-button:hover {
-      background: #357ABD;
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
-  <header>
-    Barbu Tracker - Tableau de Bord
-  </header>
+  <header>Barbu Tracker - Tableau de Bord</header>
   <main>
     <nav class="breadcrumb">
       <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
     </nav>
     
-    <!-- Section Résumé du jour -->
+    <!-- Résumé du jour -->
     <section id="daily-summary">
       <h2>Résumé du jour</h2>
       <div class="dashboard">
@@ -212,93 +137,75 @@
         </div>
         <div class="card">
           <i class="fas fa-star"></i>
-          <h3>Meilleur score</h3>
+          <h3>Meilleur score du jour</h3>
           <p id="best-score">-</p>
         </div>
         <div class="card">
           <i class="fas fa-trophy"></i>
-          <h3>Top joueur</h3>
+          <h3>Top joueur du jour</h3>
           <p id="top-player-today">-</p>
         </div>
         <div class="card">
           <i class="fas fa-calendar-week"></i>
-          <h3>Résumé de la semaine</h3>
+          <h3>Parties cette semaine</h3>
           <p id="weekly-summary">-</p>
         </div>
       </div>
     </section>
     
-    <!-- Section Informations de session -->
-    <section id="session-info">
-      <h2>Informations de session</h2>
+    <!-- Saison en cours -->
+    <section id="current-season">
+      <h2>Saison en cours</h2>
+      <div class="card season-info">
+        <p id="season-end">Date de fin: -</p>
+        <p id="time-remaining">Temps restant: -</p>
+      </div>
+    </section>
+    
+    <!-- Succès / Achievements -->
+    <section id="achievements">
+      <h2>Succès</h2>
       <div class="dashboard">
-        <div class="card">
-          <i class="fas fa-clock"></i>
-          <h3>Session en cours</h3>
-          <p id="current-session">-</p>
+        <div class="card achievement" id="mostPoints">
+          <p>Le joueur avec le plus de points: -</p>
         </div>
-        <div class="card">
-          <i class="fas fa-gamepad"></i>
-          <h3>Dernière partie</h3>
-          <div id="last-party">-</div>
+        <div class="card achievement" id="leastPoints">
+          <p>Le joueur avec le moins de points: -</p>
+        </div>
+        <div class="card achievement" id="mostDefeats">
+          <p>Le joueur avec le plus de défaites: -</p>
+        </div>
+        <div class="card achievement" id="mostWins">
+          <p>Le joueur ayant le plus de victoires: -</p>
         </div>
       </div>
     </section>
     
-    <!-- Section Classements -->
-    <section id="rankings">
+    <!-- Classements -->
+    <section id="leaderboards">
       <h2>Classements</h2>
       <div class="dashboard">
-        <div class="card">
+        <div class="card" id="season-leaderboard">
           <i class="fas fa-award"></i>
           <h3>Classement de la saison</h3>
-          <div id="season-ranking">-</div>
+          <div id="season-leaderboard-content">-</div>
         </div>
-        <div class="card">
+        <div class="card" id="general-leaderboard">
           <i class="fas fa-globe"></i>
           <h3>Classement général</h3>
-          <div id="general-ranking">-</div>
+          <div id="general-leaderboard-content">-</div>
         </div>
       </div>
     </section>
     
-    <!-- Section Historique -->
-    <section id="public-history">
-      <h2>Historique</h2>
-      <div class="search-bar">
-        <input type="date" id="search-date" placeholder="Rechercher par date">
-        <select id="sort-order">
-          <option value="recent">Plus récent</option>
-          <option value="ancien">Plus ancien</option>
-        </select>
-        <button id="searchButton">Rechercher</button>
-      </div>
-      <div class="history-section">
-        <div class="dashboard">
-          <div class="card">
-            <h3>Saisons</h3>
-            <div id="history-saisons" class="detail-list"></div>
-          </div>
-          <div class="card">
-            <h3>Sessions</h3>
-            <div id="history-sessions" class="detail-list"></div>
-          </div>
-          <div class="card">
-            <h3>Parties</h3>
-            <div id="history-parties" class="detail-list"></div>
-          </div>
-        </div>
+    <!-- Dernière Partie Terminée -->
+    <section id="last-finished-party">
+      <h2>Dernière Partie Terminée</h2>
+      <div class="card">
+        <div id="last-party-results">-</div>
       </div>
     </section>
     
-    <!-- Extra fonctionnalités -->
-    <div class="extra-features">
-      <p id="last-updated"></p>
-      <button id="refresh-button"><i class="fas fa-sync-alt"></i> Rafraîchir</button>
-      <div class="quote-section" id="inspirational-quote"></div>
-    </div>
-    
-    <p style="text-align:center;"><a class="back-button" href="resume.html"><i class="fas fa-arrow-right"></i> Voir le résumé détaillé</a></p>
   </main>
   <script src="public.js"></script>
 </body>
