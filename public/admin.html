@@ -24,7 +24,7 @@
     const db = firebase.firestore(app);
   </script>
   <style>
-    /* Styles simples et intuitifs pour l'administration */
+    /* Styles pour l'administration */
     body {
       font-family: Arial, sans-serif;
       background: #eef2f7;
@@ -33,28 +33,32 @@
     }
     h1 {
       text-align: center;
-      color: #4A90E2;
+      font-size: 2em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    main {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
     }
     .admin-container {
       background: #fff;
-      padding: 15px;
-      margin: 20px auto;
       border-radius: 8px;
       max-width: 500px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .admin-container h2 {
-      text-align: center;
+    h2 {
       color: #4A90E2;
-      margin-bottom: 15px;
+      text-align: center;
+      margin-bottom: 20px;
     }
     form {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
     form label {
       font-weight: bold;
-      display: block;
       margin-top: 10px;
+      display: block;
     }
     form input, form select, form textarea, form button {
       width: 100%;
@@ -62,7 +66,7 @@
       margin: 5px 0;
       border: 1px solid #ccc;
       border-radius: 4px;
-      box-sizing: border-box;
+      font-size: 1em;
     }
     form button {
       background: #4A90E2;
@@ -74,103 +78,51 @@
       background: #357ABD;
     }
     .data-section {
-      margin-top: 30px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
+      margin-top: 40px;
     }
-    .data-section h2 {
-      text-align: center;
+    .data-section h3 {
       color: #4A90E2;
       margin-bottom: 10px;
     }
     .data-list {
       list-style: none;
       padding: 0;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #fff;
-      max-width: 500px;
-      margin: auto;
     }
     .data-list li {
       padding: 10px;
       border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .data-list li:last-child {
-      border-bottom: none;
-    }
-    .delete-btn {
-      background: #e74c3c;
-      color: #fff;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .delete-btn:hover {
-      background: #c0392b;
     }
   </style>
 </head>
 <body>
-  <h1>Administration - Barbu Tracker</h1>
-  
-  <!-- Formulaire pour ajouter une saison -->
-  <div class="admin-container">
-    <h2>Ajouter une Saison</h2>
-    <form id="seasonForm">
-      <label for="seasonName">Nom de la saison :</label>
-      <input type="text" id="seasonName" placeholder="Nom de la saison" required>
-      <label for="seasonEnd">Date de fin :</label>
-      <input type="date" id="seasonEnd" required>
-      <button type="submit">Ajouter Saison</button>
-    </form>
-  </div>
-  
-  <!-- Formulaire pour ajouter une session -->
-  <div class="admin-container">
-    <h2>Ajouter une Session</h2>
-    <form id="sessionForm">
-      <label for="sessionDateTime">Date et heure :</label>
-      <input type="datetime-local" id="sessionDateTime" required>
-      <label for="sessionSeason">Sélectionnez une saison :</label>
-      <select id="sessionSeason" required>
-        <option value="">-- Sélectionnez une saison --</option>
-      </select>
-      <button type="submit">Ajouter Session</button>
-    </form>
-  </div>
-  
-  <!-- Formulaire pour ajouter une partie -->
-  <div class="admin-container">
-    <h2>Ajouter une Partie</h2>
-    <form id="partyForm">
-      <label for="partySession">Sélectionnez une session :</label>
-      <select id="partySession" required>
-        <option value="">-- Sélectionnez une session --</option>
-      </select>
-      <label for="hugoScore">Score Hugo :</label>
-      <input type="number" id="hugoScore" placeholder="Score Hugo" required>
-      <label for="leoScore">Score Léo :</label>
-      <input type="number" id="leoScore" placeholder="Score Léo" required>
-      <label for="gabrielScore">Score Gabriel :</label>
-      <input type="number" id="gabrielScore" placeholder="Score Gabriel" required>
-      <label for="guillaumeScore">Score Guillaume :</label>
-      <input type="number" id="guillaumeScore" placeholder="Score Guillaume" required>
-      <button type="submit">Ajouter Partie</button>
-    </form>
-  </div>
-  
-  <!-- Section d'affichage des données globales -->
-  <div class="data-section">
-    <h2>Données Actuelles</h2>
-    <ul class="data-list" id="dataList"></ul>
-  </div>
-  
+  <header>
+    Barbu Tracker - Administration
+  </header>
+  <main>
+    <div class="admin-container">
+      <h2>Ajouter une nouvelle partie</h2>
+      <form id="add-party-form">
+        <label for="session-id">ID de session :</label>
+        <input type="text" id="session-id" placeholder="Entrez l'ID de session" required>
+        
+        <label for="player-scores">Scores (format: nom:score, séparés par des virgules) :</label>
+        <textarea id="player-scores" placeholder="Ex: Hugo:50, Léo:30" required></textarea>
+        
+        <label for="finished">Partie terminée ? :</label>
+        <select id="finished">
+          <option value="true">Oui</option>
+          <option value="false" selected>Non</option>
+        </select>
+        
+        <button type="submit">Ajouter Partie</button>
+      </form>
+
+      <div class="data-section">
+        <h3>Données actuelles (Parties)</h3>
+        <ul class="data-list" id="data-list"></ul>
+      </div>
+    </div>
+  </main>
   <script src="admin.js"></script>
 </body>
 </html>
