@@ -49,8 +49,8 @@
       background: #fff;
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     h2 {
       color: #4A90E2;
@@ -118,46 +118,69 @@
   </style>
 </head>
 <body>
-  <header>
-    Barbu Tracker - Administration
-  </header>
+  <header>Barbu Tracker - Administration</header>
   <main>
+    <!-- Formulaire d'ajout d'une nouvelle saison -->
+    <div class="admin-container">
+      <h2>Ajouter une nouvelle Saison</h2>
+      <form id="add-season-form">
+        <label for="season-name">Nom de la saison :</label>
+        <input type="text" id="season-name" placeholder="Nom de la saison" required>
+        <label for="season-finished">Saison terminée ?</label>
+        <select id="season-finished">
+          <option value="false" selected>Non</option>
+          <option value="true">Oui</option>
+        </select>
+        <button type="submit">Ajouter Saison</button>
+      </form>
+    </div>
+
+    <!-- Formulaire d'ajout d'une nouvelle session -->
+    <div class="admin-container">
+      <h2>Ajouter une nouvelle Session</h2>
+      <form id="add-session-form">
+        <label for="session-date">Date de la session :</label>
+        <input type="date" id="session-date" required>
+        <label for="session-season">ID de la Saison associée :</label>
+        <input type="text" id="session-season" placeholder="Entrez l'ID de la saison" required>
+        <label for="session-finished">Session terminée ?</label>
+        <select id="session-finished">
+          <option value="false" selected>Non</option>
+          <option value="true">Oui</option>
+        </select>
+        <button type="submit">Ajouter Session</button>
+      </form>
+    </div>
+
     <!-- Formulaire d'ajout d'une nouvelle partie -->
     <div class="admin-container">
-      <h2>Ajouter une nouvelle partie</h2>
+      <h2>Ajouter une nouvelle Partie</h2>
       <form id="add-party-form">
-        <label for="session-id">ID de session :</label>
-        <input type="text" id="session-id" placeholder="Entrez l'ID de session" required>
-        
-        <label for="player-scores">Scores (format: nom:score, séparés par des virgules) :</label>
-        <textarea id="player-scores" placeholder="Ex: Hugo:50, Léo:30" required></textarea>
-        
-        <label for="finished">Partie terminée ? :</label>
-        <select id="finished">
-          <option value="true">Oui</option>
+        <label for="party-session">ID de la Session associée :</label>
+        <input type="text" id="party-session" placeholder="Entrez l'ID de la session" required>
+        <label for="party-scores">Scores (format: nom:score, séparés par des virgules) :</label>
+        <textarea id="party-scores" placeholder="Ex: Hugo:50, Léo:30" required></textarea>
+        <label for="party-finished">Partie terminée ?</label>
+        <select id="party-finished">
           <option value="false" selected>Non</option>
+          <option value="true">Oui</option>
         </select>
-        
         <button type="submit">Ajouter Partie</button>
       </form>
     </div>
-    
-    <!-- Liste des Parties -->
-    <div class="admin-container">
-      <h2>Liste des Parties</h2>
-      <ul class="data-list" id="party-list"></ul>
-    </div>
 
-    <!-- Liste des Sessions -->
-    <div class="admin-container">
+    <!-- Section pour afficher les listes -->
+    <div class="admin-container data-section">
+      <h2>Liste des Saisons</h2>
+      <ul class="data-list" id="season-list"></ul>
+    </div>
+    <div class="admin-container data-section">
       <h2>Liste des Sessions</h2>
       <ul class="data-list" id="session-list"></ul>
     </div>
-
-    <!-- Liste des Saisons -->
-    <div class="admin-container">
-      <h2>Liste des Saisons</h2>
-      <ul class="data-list" id="saison-list"></ul>
+    <div class="admin-container data-section">
+      <h2>Liste des Parties</h2>
+      <ul class="data-list" id="party-list"></ul>
     </div>
   </main>
   <script src="admin.js"></script>
