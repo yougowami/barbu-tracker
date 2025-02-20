@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Admin - Barbu Tracker</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Font Awesome pour les icônes -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Firebase SDK (versions compat pour une intégration simple) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -20,12 +20,11 @@
       appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
       measurementId: "G-7DQ3P4SQNJ"
     };
-    // Initialisation
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
   <style>
-    /* Styles simplifiés et intuitifs */
+    /* Styles simples et intuitifs */
     body {
       font-family: Arial, sans-serif;
       background: #eef2f7;
@@ -106,16 +105,23 @@
     .data-list li:last-child {
       border-bottom: none;
     }
-    .delete-btn {
+    .delete-btn, .finish-btn {
       background: #e74c3c;
       color: #fff;
       border: none;
       padding: 5px 10px;
       border-radius: 4px;
       cursor: pointer;
+      margin-left: 5px;
+    }
+    .finish-btn {
+      background: #27ae60;
     }
     .delete-btn:hover {
       background: #c0392b;
+    }
+    .finish-btn:hover {
+      background: #1e8449;
     }
   </style>
 </head>
@@ -131,22 +137,24 @@
       <button type="submit">Ajouter Saison</button>
     </form>
   </div>
+  
   <div class="admin-container">
     <h2>Ajouter une Session</h2>
     <form id="sessionForm">
       <label for="sessionDateTime">Date et heure :</label>
       <input type="datetime-local" id="sessionDateTime" required>
-      <label for="sessionSeason">Sélectionnez une Saison :</label>
+      <label for="sessionSeason">Sélectionnez une Saison active :</label>
       <select id="sessionSeason" required>
         <option value="">-- Sélectionnez une saison --</option>
       </select>
       <button type="submit">Ajouter Session</button>
     </form>
   </div>
+  
   <div class="admin-container">
     <h2>Ajouter une Partie</h2>
     <form id="partyForm">
-      <label for="partySession">Sélectionnez une Session :</label>
+      <label for="partySession">Sélectionnez une Session active :</label>
       <select id="partySession" required>
         <option value="">-- Sélectionnez une session --</option>
       </select>
@@ -162,8 +170,9 @@
     </form>
   </div>
   
+  <!-- Section d'affichage des données actives -->
   <div class="data-section">
-    <h2>Données Actuelles</h2>
+    <h2>Données Actives</h2>
     <ul class="data-list" id="dataList"></ul>
   </div>
   

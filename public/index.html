@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <title>Barbu Tracker - Tableau de Bord</title>
   <link rel="stylesheet" href="styles.css">
-  <!-- Font Awesome pour les icônes -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Utiliser les versions "compat" du SDK Firebase pour obtenir la variable globale firebase -->
+  <!-- Firebase SDK (compat pour obtenir firebase en global) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <!-- Chart.js pour les graphiques -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Configuration Firebase (utilisez les valeurs fournies)
+    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
       authDomain: "barbutracker.firebaseapp.com",
@@ -22,12 +22,11 @@
       appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
       measurementId: "G-7DQ3P4SQNJ"
     };
-    // Initialisation de Firebase et de Firestore via les versions compat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
   <style>
-    /* Animations */
+    /* Styles de base */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -49,16 +48,6 @@
       max-width: 1200px;
       margin: 20px auto;
       padding: 20px;
-    }
-    .breadcrumb {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 0.9em;
-    }
-    .breadcrumb a {
-      color: #4A90E2;
-      text-decoration: none;
-      margin: 0 5px;
     }
     section {
       margin-bottom: 40px;
@@ -102,14 +91,13 @@
       font-size: 1.4em;
       color: #555;
     }
-    /* Saison en cours */
-    .season-info {
+    .season-info, .session-info {
       background: #d1e7dd;
       padding: 10px;
       border-radius: 6px;
       color: #0f5132;
+      margin-bottom: 10px;
     }
-    /* Achievements */
     .achievement {
       background: #e8f0fe;
       padding: 10px;
@@ -117,93 +105,194 @@
       font-style: italic;
       color: #4A90E2;
       margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .general-leaderboard {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      animation: fadeInUp 0.5s ease-out;
+    }
+    .general-leaderboard ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+    }
+    .general-leaderboard li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    .general-leaderboard li:last-child {
+      border-bottom: none;
+    }
+    .history-button {
+      display: block;
+      margin: 30px auto;
+      padding: 12px 20px;
+      background: #4A90E2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 1em;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .history-button:hover {
+      background: #357ABD;
+    }
+    .history-form {
+      max-width: 500px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .history-form select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .history-form button {
+      width: 100%;
+      padding: 10px;
+      background: #4A90E2;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .history-form button:hover {
+      background: #357ABD;
     }
   </style>
 </head>
 <body>
   <header>Barbu Tracker - Tableau de Bord</header>
   <main>
-    <nav class="breadcrumb">
-      <a href="index.html"><i class="fas fa-home"></i> Accueil</a>
-    </nav>
-    
-    <!-- Résumé du jour -->
-    <section id="daily-summary">
-      <h2>Résumé du jour</h2>
+    <!-- Section Résumé de la semaine -->
+    <section id="weekly-summary-section">
+      <h2>Résumé de la semaine</h2>
       <div class="dashboard">
         <div class="card">
           <i class="fas fa-chart-line"></i>
-          <h3>Parties aujourd'hui</h3>
-          <p id="parties-today">0</p>
+          <h3>Parties cette semaine</h3>
+          <p id="weekly-summary-count">0</p>
         </div>
         <div class="card">
           <i class="fas fa-star"></i>
-          <h3>Meilleur score du jour</h3>
-          <p id="best-score">-</p>
+          <h3>Meilleur score de la semaine</h3>
+          <p id="weekly-best-score">-</p>
         </div>
         <div class="card">
           <i class="fas fa-trophy"></i>
-          <h3>Top joueur du jour</h3>
-          <p id="top-player-today">-</p>
-        </div>
-        <div class="card">
-          <i class="fas fa-calendar-week"></i>
-          <h3>Parties cette semaine</h3>
-          <p id="weekly-summary">-</p>
+          <h3>Top joueur de la semaine</h3>
+          <p id="weekly-top-player">-</p>
         </div>
       </div>
     </section>
     
-    <!-- Saison en cours -->
-    <section id="current-season">
+    <!-- Section Saison en cours -->
+    <section id="current-season-section">
       <h2>Saison en cours</h2>
       <div class="card season-info">
         <p id="season-end">Date de fin: -</p>
         <p id="time-remaining">Temps restant: -</p>
+        <div id="season-ranking">
+          <h3>Classement de la saison</h3>
+          <ul id="season-ranking-list"></ul>
+        </div>
       </div>
     </section>
     
-    <!-- Succès / Achievements -->
-    <section id="achievements">
+    <!-- Section Session en cours -->
+    <section id="current-session-section">
+      <h2>Session en cours</h2>
+      <div class="card session-info">
+        <div id="session-ranking">
+          <h3>Classement de la session</h3>
+          <ul id="session-ranking-list"></ul>
+        </div>
+        <div id="last-party-summary">
+          <h3>Résumé de la dernière partie</h3>
+          <ul id="last-party-list"></ul>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Section Succès / Achievements -->
+    <section id="achievements-section">
       <h2>Succès</h2>
       <div class="dashboard">
         <div class="card achievement" id="mostPoints">
-          <p>Le joueur avec le plus de points: -</p>
+          <i class="fas fa-crown"></i>
+          <p>Plus de points: -</p>
         </div>
         <div class="card achievement" id="leastPoints">
-          <p>Le joueur avec le moins de points: -</p>
+          <i class="fas fa-medal"></i>
+          <p>Moins de points: -</p>
         </div>
         <div class="card achievement" id="mostDefeats">
-          <p>Le joueur avec le plus de défaites: -</p>
+          <i class="fas fa-skull-crossbones"></i>
+          <p>Plus de défaites: -</p>
         </div>
         <div class="card achievement" id="mostWins">
-          <p>Le joueur ayant le plus de victoires: -</p>
+          <i class="fas fa-trophy"></i>
+          <p>Plus de victoires: -</p>
+        </div>
+        <div class="card achievement" id="mostConsistent">
+          <i class="fas fa-sync-alt"></i>
+          <p>Le plus constant: -</p>
+        </div>
+        <div class="card achievement" id="biggestImprovement">
+          <i class="fas fa-arrow-up"></i>
+          <p>Le plus amélioré: -</p>
+        </div>
+        <div class="card achievement" id="mostSurprising">
+          <i class="fas fa-bolt"></i>
+          <p>Le plus surprenant: -</p>
+        </div>
+        <div class="card achievement" id="playerOfTheWeek">
+          <i class="fas fa-star"></i>
+          <p>Joueur de la semaine: -</p>
         </div>
       </div>
     </section>
     
-    <!-- Classements -->
-    <section id="leaderboards">
-      <h2>Classements</h2>
-      <div class="dashboard">
-        <div class="card" id="season-leaderboard">
-          <i class="fas fa-award"></i>
-          <h3>Classement de la saison</h3>
-          <div id="season-leaderboard-content">-</div>
-        </div>
-        <div class="card" id="general-leaderboard">
-          <i class="fas fa-globe"></i>
-          <h3>Classement général</h3>
-          <div id="general-leaderboard-content">-</div>
-        </div>
+    <!-- Section Classement Général -->
+    <section id="general-leaderboard-section">
+      <h2>Classement Général</h2>
+      <div class="card general-leaderboard">
+        <ul id="general-leaderboard-list"></ul>
       </div>
     </section>
     
-    <!-- Dernière Partie Terminée -->
-    <section id="last-finished-party">
-      <h2>Dernière Partie Terminée</h2>
-      <div class="card">
-        <div id="last-party-results">-</div>
+    <!-- Section Historique -->
+    <section id="history-section">
+      <button class="history-button" id="viewHistoryBtn">Voir l'historique</button>
+      <div class="history-form" id="historyForm">
+        <label for="historySeason">Sélectionnez une Saison :</label>
+        <select id="historySeason">
+          <option value="">-- Saison --</option>
+        </select>
+        <label for="historySession">Sélectionnez une Session :</label>
+        <select id="historySession">
+          <option value="">-- Session --</option>
+        </select>
+        <label for="historyParty">Sélectionnez une Partie :</label>
+        <select id="historyParty">
+          <option value="">-- Partie --</option>
+        </select>
+        <button id="goToResumeBtn">Voir le Résumé</button>
       </div>
     </section>
     

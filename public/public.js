@@ -1,71 +1,77 @@
 // public.js
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+  let cachedData = null;
 
-  // Charge les données depuis Firestore
+  // Fonction pour charger les données depuis Firestore et mettre en cache le résultat
   async function loadData() {
+    if (cachedData) return cachedData;
     try {
       const saisonsSnapshot = await db.collection('saisons').get();
       const sessionsSnapshot = await db.collection('sessions').get();
       const partiesSnapshot = await db.collection('parties').get();
-      
+
       const saisons = saisonsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const sessions = sessionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const parties = partiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      return { saisons, sessions, parties };
+
+      cachedData = { saisons, sessions, parties };
+      return cachedData;
     } catch (err) {
-      console.error("Erreur de chargement des données :", err);
+      console.error("Erreur lors du chargement des données :", err);
       return { saisons: [], sessions: [], parties: [] };
     }
   }
-  
-  // Met à jour les statistiques quotidiennes et hebdomadaires
-  function updateDailyWeeklyStats(data) {
+
+  // Rafraîchit le cache et re-render le dashboard
+  async function refreshData() {
+    cachedData = null;
+    await renderDashboard();
+    await populateHistoryDropdowns();
+  }
+
+  // Mise à jour du résumé de la semaine
+  function updateWeeklyStats(data) {
     const today = new Date().toISOString().split('T')[0];
-    let todayParties = [];
+    let weeklyParties = [];
     data.parties.forEach(party => {
       const session = data.sessions.find(s => s.id === party.sessionId);
       if (session) {
         const sessionDate = new Date(session.date).toISOString().split('T')[0];
-        if (sessionDate === today) todayParties.push(party);
+        const diffDays = (new Date(today) - new Date(sessionDate)) / (1000 * 60 * 60 * 24);
+        if (diffDays >= 0 && diffDays < 7) {
+          weeklyParties.push(party);
+        }
       }
     });
-    document.getElementById('parties-today').textContent = todayParties.length;
-    
-    const dailyScores = {};
-    todayParties.forEach(party => {
+    document.getElementById('weekly-summary-count').textContent = weeklyParties.length;
+
+    // Calcul des scores de la semaine
+    const weeklyScores = {};
+    weeklyParties.forEach(party => {
       Object.entries(party.scores).forEach(([player, score]) => {
-        dailyScores[player] = (dailyScores[player] || 0) + score;
+        weeklyScores[player] = (weeklyScores[player] || 0) + score;
       });
     });
     let bestPlayer = "-", bestScore = Infinity;
-    Object.entries(dailyScores).forEach(([player, score]) => {
+    Object.entries(weeklyScores).forEach(([player, score]) => {
       if (score < bestScore) {
         bestScore = score;
         bestPlayer = player;
       }
     });
-    document.getElementById('best-score').textContent = bestScore === Infinity ? "-" : bestScore;
-    document.getElementById('top-player-today').textContent = bestPlayer;
-    
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    const weeklyParties = data.parties.filter(party => {
-      const session = data.sessions.find(s => s.id === party.sessionId);
-      return session && new Date(session.date) >= weekAgo;
-    });
-    document.getElementById('weekly-summary').textContent = `${weeklyParties.length}`;
+    document.getElementById('weekly-best-score').textContent = bestScore === Infinity ? "-" : bestScore;
+    document.getElementById('weekly-top-player').textContent = bestPlayer;
   }
-  
-  // Met à jour les informations de la saison en cours : date de fin et temps restant
+
+  // Mise à jour de la saison en cours et de son classement
   function updateSeasonInfo(data) {
     const now = new Date();
-    const currentSeasons = data.saisons.filter(season => !season.finished && new Date(season.endDate) >= now);
-    if (currentSeasons.length > 0) {
-      currentSeasons.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
-      const currentSeason = currentSeasons[0];
+    const activeSaisons = data.saisons.filter(season => !season.finished && new Date(season.endDate) >= now);
+    if (activeSaisons.length > 0) {
+      activeSaisons.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+      const currentSeason = activeSaisons[0];
       document.getElementById('season-end').textContent = `Date de fin: ${currentSeason.endDate}`;
-      
+
       const endDate = new Date(currentSeason.endDate);
       const diffMs = endDate - now;
       if (diffMs > 0) {
@@ -76,19 +82,91 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         document.getElementById('time-remaining').textContent = "La saison est terminée.";
       }
+
+      // Classement de la saison (pour les sessions terminées)
+      const seasonSessions = data.sessions.filter(session => session.saisonId === currentSeason.id && session.finished);
+      let seasonScores = {};
+      seasonSessions.forEach(session => {
+        const sessionParties = data.parties.filter(party => party.sessionId === session.id && party.finished);
+        sessionParties.forEach(party => {
+          Object.entries(party.scores).forEach(([player, score]) => {
+            seasonScores[player] = (seasonScores[player] || 0) + score;
+          });
+        });
+      });
+      const seasonRanking = Object.entries(seasonScores).sort((a, b) => a[1] - b[1]);
+      const seasonRankingList = document.getElementById('season-ranking-list');
+      seasonRankingList.innerHTML = "";
+      if (seasonRanking.length === 0) {
+        seasonRankingList.innerHTML = "<li>Aucun score disponible</li>";
+      } else {
+        seasonRanking.forEach(([player, score], index) => {
+          seasonRankingList.innerHTML += `<li>${index + 1}. ${player}: ${score}</li>`;
+        });
+      }
     } else {
       document.getElementById('season-end').textContent = "Aucune saison en cours.";
       document.getElementById('time-remaining').textContent = "-";
+      document.getElementById('season-ranking-list').innerHTML = "<li>-</li>";
     }
   }
-  
-  // Calcule et affiche les succès (achievements)
+
+  // Mise à jour de la session en cours, de son classement et du résumé de la dernière partie
+  function updateSessionInfo(data) {
+    const activeSessions = data.sessions.filter(session => !session.finished);
+    if (activeSessions.length > 0) {
+      activeSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const currentSession = activeSessions[0];
+
+      // Classement de la session
+      const sessionParties = data.parties.filter(party => party.sessionId === currentSession.id && party.finished);
+      let sessionScores = {};
+      sessionParties.forEach(party => {
+        Object.entries(party.scores).forEach(([player, score]) => {
+          sessionScores[player] = (sessionScores[player] || 0) + score;
+        });
+      });
+      const sessionRanking = Object.entries(sessionScores).sort((a, b) => a[1] - b[1]);
+      const sessionRankingList = document.getElementById('session-ranking-list');
+      sessionRankingList.innerHTML = "";
+      if (sessionRanking.length === 0) {
+        sessionRankingList.innerHTML = "<li>Aucun score disponible</li>";
+      } else {
+        sessionRanking.forEach(([player, score], index) => {
+          sessionRankingList.innerHTML += `<li>${index + 1}. ${player}: ${score}</li>`;
+        });
+      }
+
+      // Résumé de la dernière partie de la session
+      const finishedSessionParties = sessionParties.slice();
+      finishedSessionParties.sort((a, b) => {
+        const timeA = a.createdAt ? a.createdAt.toDate() : new Date(0);
+        const timeB = b.createdAt ? b.createdAt.toDate() : new Date(0);
+        return timeB - timeA;
+      });
+      const lastParty = finishedSessionParties[0];
+      const lastPartyList = document.getElementById('last-party-list');
+      lastPartyList.innerHTML = "";
+      if (lastParty) {
+        for (const [player, score] of Object.entries(lastParty.scores)) {
+          lastPartyList.innerHTML += `<li>${player}: ${score}</li>`;
+        }
+      } else {
+        lastPartyList.innerHTML = "<li>Aucune partie terminée dans cette session</li>";
+      }
+    } else {
+      document.getElementById('session-ranking-list').innerHTML = "<li>Aucune session en cours</li>";
+      document.getElementById('last-party-list').innerHTML = "<li>-</li>";
+    }
+  }
+
+  // Calcul et affichage des succès (achievements)
   function computeAchievements(data) {
     const aggregatedScores = {};
     const defeatCounts = {};
     const winCounts = {};
-    
     data.parties.forEach(party => {
+      if (!party.finished) return;
       const scores = party.scores;
       Object.entries(scores).forEach(([player, score]) => {
         aggregatedScores[player] = (aggregatedScores[player] || 0) + score;
@@ -109,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
-    
     let mostPointsPlayer = "-", mostPoints = -Infinity;
     Object.entries(aggregatedScores).forEach(([player, score]) => {
       if (score > mostPoints) {
@@ -138,48 +215,24 @@ document.addEventListener('DOMContentLoaded', () => {
         mostWinsPlayer = player;
       }
     });
-    
-    document.getElementById('mostPoints').innerHTML = `<p>Le joueur avec le plus de points: ${mostPointsPlayer} (${mostPoints})</p>`;
-    document.getElementById('leastPoints').innerHTML = `<p>Le joueur avec le moins de points: ${leastPointsPlayer} (${leastPoints})</p>`;
-    document.getElementById('mostDefeats').innerHTML = `<p>Le joueur avec le plus de défaites: ${mostDefeatsPlayer} (${mostDefeats})</p>`;
-    document.getElementById('mostWins').innerHTML = `<p>Le joueur ayant le plus de victoires: ${mostWinsPlayer} (${mostWins})</p>`;
+    // Succès supplémentaires (valeurs statiques pour l'exemple)
+    let mostConsistentPlayer = "N/A", mostConsistentValue = "N/A";
+    let biggestImprovementPlayer = "N/A", biggestImprovementValue = "N/A";
+    let mostSurprisingPlayer = "N/A", mostSurprisingValue = "N/A";
+    let playerOfTheWeek = "N/A", playerOfTheWeekValue = "N/A";
+
+    document.getElementById('mostPoints').innerHTML = `<i class="fas fa-crown"></i><p>Plus de points: ${mostPointsPlayer} (${mostPoints})</p>`;
+    document.getElementById('leastPoints').innerHTML = `<i class="fas fa-medal"></i><p>Moins de points: ${leastPointsPlayer} (${leastPoints})</p>`;
+    document.getElementById('mostDefeats').innerHTML = `<i class="fas fa-skull-crossbones"></i><p>Plus de défaites: ${mostDefeatsPlayer} (${mostDefeats})</p>`;
+    document.getElementById('mostWins').innerHTML = `<i class="fas fa-trophy"></i><p>Plus de victoires: ${mostWinsPlayer} (${mostWins})</p>`;
+    document.getElementById('mostConsistent').innerHTML = `<i class="fas fa-sync-alt"></i><p>Le plus constant: ${mostConsistentPlayer} (${mostConsistentValue})</p>`;
+    document.getElementById('biggestImprovement').innerHTML = `<i class="fas fa-arrow-up"></i><p>Le plus amélioré: ${biggestImprovementPlayer} (${biggestImprovementValue})</p>`;
+    document.getElementById('mostSurprising').innerHTML = `<i class="fas fa-bolt"></i><p>Le plus surprenant: ${mostSurprisingPlayer} (${mostSurprisingValue})</p>`;
+    document.getElementById('playerOfTheWeek').innerHTML = `<i class="fas fa-star"></i><p>Joueur de la semaine: ${playerOfTheWeek} (${playerOfTheWeekValue})</p>`;
   }
-  
-  // Met à jour les leaderboards
-  function updateLeaderboards(data) {
-    const now = new Date();
-    // Leaderboard de la saison en cours
-    const currentSeasons = data.saisons.filter(season => !season.finished && new Date(season.endDate) >= now);
-    let seasonLeaderboardHTML = "";
-    if (currentSeasons.length > 0) {
-      currentSeasons.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
-      const currentSeason = currentSeasons[0];
-      const seasonSessions = data.sessions.filter(session => session.saisonId === currentSeason.id);
-      let seasonScores = {};
-      seasonSessions.forEach(session => {
-        const sessionParties = data.parties.filter(party => party.sessionId === session.id && party.finished);
-        sessionParties.forEach(party => {
-          Object.entries(party.scores).forEach(([player, score]) => {
-            seasonScores[player] = (seasonScores[player] || 0) + score;
-          });
-        });
-      });
-      const seasonRanking = Object.entries(seasonScores).sort((a, b) => a[1] - b[1]);
-      if (seasonRanking.length === 0) {
-        seasonLeaderboardHTML = "Aucun score pour la saison en cours.";
-      } else {
-        seasonLeaderboardHTML = "<ul>";
-        seasonRanking.forEach(([player, score], index) => {
-          seasonLeaderboardHTML += `<li>${index+1}. ${player}: ${score}</li>`;
-        });
-        seasonLeaderboardHTML += "</ul>";
-      }
-      document.getElementById('season-leaderboard-content').innerHTML = seasonLeaderboardHTML;
-    } else {
-      document.getElementById('season-leaderboard-content').textContent = "Aucune saison en cours.";
-    }
-    
-    // Leaderboard général
+
+  // Mise à jour du classement général
+  function updateGeneralLeaderboard(data) {
     let generalScores = {};
     data.parties.filter(p => p.finished).forEach(party => {
       Object.entries(party.scores).forEach(([player, score]) => {
@@ -187,50 +240,176 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
     const generalRanking = Object.entries(generalScores).sort((a, b) => a[1] - b[1]);
-    let generalLeaderboardHTML = "";
+    let html = "";
     if (generalRanking.length === 0) {
-      generalLeaderboardHTML = "Aucun score général disponible.";
+      html = "Aucun score général disponible.";
     } else {
-      generalLeaderboardHTML = "<ul>";
+      html = "<ul>";
       generalRanking.forEach(([player, score], index) => {
-        generalLeaderboardHTML += `<li>${index+1}. ${player}: ${score}</li>`;
+        html += `<li>${index + 1}. ${player}: ${score}</li>`;
       });
-      generalLeaderboardHTML += "</ul>";
+      html += "</ul>";
     }
-    document.getElementById('general-leaderboard-content').innerHTML = generalLeaderboardHTML;
+    document.getElementById('general-leaderboard-list').innerHTML = html;
   }
-  
-  // Affiche les résultats de la dernière partie terminée
-  function updateLastParty(data) {
-    const finishedParties = data.parties.filter(party => party.finished);
-    if (finishedParties.length === 0) {
-      document.getElementById('last-party-results').textContent = "Aucune partie terminée récemment.";
+
+  // Gestion du formulaire d'historique
+  async function populateHistoryDropdowns() {
+    const data = await loadData();
+    const seasons = data.saisons;
+    const historySeason = document.getElementById('historySeason');
+    historySeason.innerHTML = '<option value="">-- Sélectionnez une saison --</option>';
+    seasons.forEach(season => {
+      historySeason.innerHTML += `<option value="${season.id}">${season.nom}</option>`;
+    });
+    document.getElementById('historySession').innerHTML = '<option value="">-- Sélectionnez une session --</option>';
+    document.getElementById('historyParty').innerHTML = '<option value="">-- Sélectionnez une partie --</option>';
+  }
+
+  document.getElementById('historySeason').addEventListener('change', async (e) => {
+    const seasonId = e.target.value;
+    const data = await loadData();
+    const sessions = data.sessions.filter(s => s.saisonId === seasonId);
+    const historySession = document.getElementById('historySession');
+    historySession.innerHTML = '<option value="">-- Sélectionnez une session --</option>';
+    sessions.forEach(session => {
+      historySession.innerHTML += `<option value="${session.id}">${session.date}</option>`;
+    });
+    document.getElementById('historyParty').innerHTML = '<option value="">-- Sélectionnez une partie --</option>';
+  });
+
+  document.getElementById('historySession').addEventListener('change', async (e) => {
+    const sessionId = e.target.value;
+    const data = await loadData();
+    const parties = data.parties.filter(p => p.sessionId === sessionId);
+    const historyParty = document.getElementById('historyParty');
+    historyParty.innerHTML = '<option value="">-- Sélectionnez une partie --</option>';
+    parties.forEach(party => {
+      historyParty.innerHTML += `<option value="${party.id}">${party.id}</option>`;
+    });
+  });
+
+  document.getElementById('goToResumeBtn').addEventListener('click', () => {
+    const seasonId = document.getElementById('historySeason').value;
+    const sessionId = document.getElementById('historySession').value;
+    const partyId = document.getElementById('historyParty').value;
+    let url = "resume.html?";
+    if (partyId) {
+      url += `type=partie&id=${encodeURIComponent(partyId)}`;
+    } else if (sessionId) {
+      url += `type=session&id=${encodeURIComponent(sessionId)}`;
+    } else if (seasonId) {
+      url += `type=saison&id=${encodeURIComponent(seasonId)}`;
+    } else {
+      alert("Veuillez sélectionner au moins une saison.");
       return;
     }
-    finishedParties.sort((a, b) => {
-      const timeA = a.createdAt ? a.createdAt.toDate() : new Date(0);
-      const timeB = b.createdAt ? b.createdAt.toDate() : new Date(0);
-      return timeB - timeA;
-    });
-    const lastParty = finishedParties[0];
-    let html = "<ul>";
-    for (const [player, score] of Object.entries(lastParty.scores)) {
-      html += `<li>${player}: ${score}</li>`;
+    window.location.href = url;
+  });
+
+  document.getElementById('viewHistoryBtn').addEventListener('click', () => {
+    const historyForm = document.getElementById('historyForm');
+    historyForm.style.display = (historyForm.style.display === "none" || historyForm.style.display === "") ? "block" : "none";
+    if (historyForm.style.display === "block") {
+      populateHistoryDropdowns();
     }
-    html += "</ul>";
-    document.getElementById('last-party-results').innerHTML = html;
-  }
-  
-  // Fonction principale pour mettre à jour l'ensemble du dashboard
+  });
+
+  // Fonctions de suppression globales
+  window.deleteSeason = async function(id) {
+    if (confirm("Voulez-vous vraiment supprimer cette saison ?")) {
+      try {
+        await db.collection('saisons').doc(id).delete();
+        alert("Saison supprimée.");
+        window.populateDropdowns();
+        renderDashboard();
+      } catch (error) {
+        console.error("Erreur lors de la suppression de la saison :", error);
+        alert("Erreur lors de la suppression.");
+      }
+    }
+  };
+
+  window.deleteSession = async function(id) {
+    if (confirm("Voulez-vous vraiment supprimer cette session ?")) {
+      try {
+        await db.collection('sessions').doc(id).delete();
+        alert("Session supprimée.");
+        window.populateDropdowns();
+        renderDashboard();
+      } catch (error) {
+        console.error("Erreur lors de la suppression de la session :", error);
+        alert("Erreur lors de la suppression.");
+      }
+    }
+  };
+
+  window.deleteParty = async function(id) {
+    if (confirm("Voulez-vous vraiment supprimer cette partie ?")) {
+      try {
+        await db.collection('parties').doc(id).delete();
+        alert("Partie supprimée.");
+        renderDashboard();
+      } catch (error) {
+        console.error("Erreur lors de la suppression de la partie :", error);
+        alert("Erreur lors de la suppression.");
+      }
+    }
+  };
+
+  // Marquer une session comme terminée
+  window.markSessionFinished = async function(id) {
+    if (confirm("Voulez-vous marquer cette session comme terminée ?")) {
+      try {
+        await db.collection('sessions').doc(id).update({ finished: true });
+        alert("Session marquée comme terminée.");
+        window.populateDropdowns();
+        renderDashboard();
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour de la session :", error);
+        alert("Erreur lors de la mise à jour.");
+      }
+    }
+  };
+
+  // Fonction principale pour afficher le dashboard
   async function renderDashboard() {
     const data = await loadData();
-    updateDailyWeeklyStats(data);
+    updateWeeklyStats(data);
     updateSeasonInfo(data);
+    updateSessionInfo(data);
     computeAchievements(data);
-    updateLeaderboards(data);
-    updateLastParty(data);
+    updateGeneralLeaderboard(data);
   }
-  
-  // Initialisation
-  renderDashboard();
+
+  // Mise à jour du classement général
+  function updateGeneralLeaderboard(data) {
+    let generalScores = {};
+    data.parties.filter(p => p.finished).forEach(party => {
+      Object.entries(party.scores).forEach(([player, score]) => {
+        generalScores[player] = (generalScores[player] || 0) + score;
+      });
+    });
+    const generalRanking = Object.entries(generalScores).sort((a, b) => a[1] - b[1]);
+    let html = "";
+    if (generalRanking.length === 0) {
+      html = "Aucun score général disponible.";
+    } else {
+      html = "<ul>";
+      generalRanking.forEach(([player, score], index) => {
+        html += `<li>${index + 1}. ${player}: ${score}</li>`;
+      });
+      html += "</ul>";
+    }
+    document.getElementById('general-leaderboard-list').innerHTML = html;
+  }
+
+  // Initialisation : attache les fonctions globalement et lance le dashboard
+  function init() {
+    window.populateDropdowns = populateDropdowns;
+    window.renderDashboard = renderDashboard;
+    populateDropdowns();
+    renderDashboard();
+  }
+  init();
 });
