@@ -12,11 +12,27 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   
+  <!-- Initialisation Firebase (doit être avant admin.js) -->
+  <script>
+    // Remplacez ces valeurs par celles de votre projet Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
+      authDomain: "barbutracker.firebaseapp.com",
+      projectId: "barbutracker",
+      storageBucket: "barbutracker.firebasestorage.app",
+      messagingSenderId: "548445703266",
+      appId: "1:548445703266:web:07f875ef03bcdc0cca553b",
+      measurementId: "G-7DQ3P4SQNJ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+  
   <!-- Votre script admin.js -->
   <script src="admin.js" defer></script>
   
   <style>
-    /* Styles généraux – vous pouvez utiliser vos propres styles depuis styles.css */
+    /* Styles simplifiés pour cette page */
     body {
       font-family: Arial, sans-serif;
       background: #eef2f7;
@@ -29,14 +45,12 @@
       padding: 20px;
       text-align: center;
       font-size: 2em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    main {
-      max-width: 1200px;
+    .container {
+      max-width: 800px;
       margin: 20px auto;
-      padding: 20px;
     }
-    /* Conteneur de connexion (affiché si l’utilisateur n’est pas authentifié) */
+    /* Formulaire de connexion */
     #loginContainer {
       max-width: 400px;
       margin: 50px auto;
@@ -56,7 +70,7 @@
     #loginContainer button {
       padding: 10px 20px;
       background: #4A90E2;
-      color: #fff;
+      color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -64,17 +78,16 @@
     #loginContainer button:hover {
       background: #357ABD;
     }
-    /* Conteneur du contenu admin (affiché uniquement après authentification) */
+    /* Conteneur admin (masqué par défaut) */
     #adminContent {
       display: none;
     }
-    /* Les styles suivants reprennent votre ancienne organisation */
+    /* Styles pour les formulaires d'ajout */
     .admin-container {
       background: #fff;
       padding: 15px;
       margin: 15px auto;
       border-radius: 8px;
-      max-width: 500px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .admin-container h2 {
@@ -85,24 +98,17 @@
     form {
       margin-bottom: 15px;
     }
-    form label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
     form input, form select {
       width: 100%;
       padding: 8px;
-      margin-top: 5px;
+      margin: 5px 0;
       border: 1px solid #ccc;
       border-radius: 4px;
-      box-sizing: border-box;
     }
     form button {
-      margin-top: 15px;
       padding: 10px;
       background: #4A90E2;
-      color: #fff;
+      color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -110,56 +116,33 @@
     form button:hover {
       background: #357ABD;
     }
-    .data-section {
-      background: #fff;
-      padding: 15px;
-      margin: 15px auto;
-      border-radius: 8px;
-      max-width: 500px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .data-section h2 {
-      text-align: center;
-      color: #4A90E2;
-      margin-bottom: 10px;
-    }
+    /* Liste des parties actives */
     .data-list {
       list-style: none;
       padding: 0;
-      margin: 0;
     }
     .data-list li {
       padding: 10px;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #ccc;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .data-list li:last-child {
-      border-bottom: none;
-    }
-    .delete-btn, .finish-btn {
+    .delete-btn {
       background: #e74c3c;
-      color: #fff;
+      color: white;
       border: none;
       padding: 5px 10px;
       border-radius: 4px;
       cursor: pointer;
-      margin-left: 5px;
-    }
-    .finish-btn {
-      background: #27ae60;
     }
     .delete-btn:hover {
       background: #c0392b;
     }
-    .finish-btn:hover {
-      background: #1e8449;
-    }
   </style>
 </head>
 <body>
-  <header>Barbu Tracker - Administration</header>
+  <header>Admin - Barbu Tracker</header>
   
   <!-- Conteneur de connexion -->
   <div id="loginContainer">
@@ -171,15 +154,13 @@
     </form>
   </div>
   
-  <!-- Conteneur du contenu admin (affiché uniquement après authentification) -->
-  <div id="adminContent">
+  <!-- Contenu admin (seulement visible après authentification) -->
+  <div id="adminContent" class="container">
     <!-- Formulaire d'ajout d'une saison -->
     <div class="admin-container">
       <h2>Ajouter une Saison</h2>
       <form id="seasonForm">
-        <label for="seasonName">Nom de la saison :</label>
-        <input type="text" id="seasonName" placeholder="Ex: Saison 2023" required>
-        <label for="seasonEnd">Date de fin :</label>
+        <input type="text" id="seasonName" placeholder="Nom de la saison" required>
         <input type="date" id="seasonEnd" required>
         <button type="submit">Ajouter Saison</button>
       </form>
@@ -189,9 +170,7 @@
     <div class="admin-container">
       <h2>Ajouter une Session</h2>
       <form id="sessionForm">
-        <label for="sessionDateTime">Date et heure :</label>
         <input type="datetime-local" id="sessionDateTime" required>
-        <label for="sessionSeason">Sélectionnez une Saison active :</label>
         <select id="sessionSeason" required>
           <option value="">-- Sélectionnez une saison --</option>
         </select>
@@ -203,48 +182,22 @@
     <div class="admin-container">
       <h2>Ajouter une Partie</h2>
       <form id="partyForm">
-        <label for="partySession">Sélectionnez une Session active :</label>
         <select id="partySession" required>
           <option value="">-- Sélectionnez une session --</option>
         </select>
-        <label for="hugoScore">Score Hugo :</label>
-        <input type="number" id="hugoScore" placeholder="Ex: 50" required>
-        <label for="leoScore">Score Léo :</label>
-        <input type="number" id="leoScore" placeholder="Ex: 30" required>
-        <label for="gabrielScore">Score Gabriel :</label>
-        <input type="number" id="gabrielScore" placeholder="Ex: 25" required>
-        <label for="guillaumeScore">Score Guillaume :</label>
-        <input type="number" id="guillaumeScore" placeholder="Ex: 40" required>
+        <input type="number" id="hugoScore" placeholder="Score Hugo" required>
+        <input type="number" id="leoScore" placeholder="Score Léo" required>
+        <input type="number" id="gabrielScore" placeholder="Score Gabriel" required>
+        <input type="number" id="guillaumeScore" placeholder="Score Guillaume" required>
         <button type="submit">Ajouter Partie</button>
       </form>
     </div>
     
-    <!-- Section d'affichage des données actives -->
-    <div class="data-section">
-      <h2>Données Actives</h2>
-      <ul class="data-list" id="dataList"></ul>
+    <!-- Section d'affichage des parties actives -->
+    <div class="admin-container">
+      <h2>Parties Actives</h2>
+      <ul class="data-list" id="activePartiesList"></ul>
     </div>
-    
-    <!-- Section Historique -->
-    <div class="data-section" id="history-section">
-      <button class="history-button" id="viewHistoryBtn">Voir l'historique</button>
-      <div class="history-form" id="historyForm">
-        <label for="historySeason">Sélectionnez une Saison :</label>
-        <select id="historySeason">
-          <option value="">-- Saison --</option>
-        </select>
-        <label for="historySession">Sélectionnez une Session :</label>
-        <select id="historySession">
-          <option value="">-- Session --</option>
-        </select>
-        <label for="historyParty">Sélectionnez une Partie :</label>
-        <select id="historyParty">
-          <option value="">-- Partie --</option>
-        </select>
-        <button id="goToResumeBtn">Voir le Résumé</button>
-      </div>
-    </div>
-    
   </div>
 </body>
 </html>
