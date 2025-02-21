@@ -6,13 +6,13 @@
   <link rel="stylesheet" href="styles.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Firebase SDK (compat pour obtenir firebase en global) -->
+  <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <!-- Chart.js pour les graphiques -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Configuration Firebase
+    // Configuration Firebase – modifiez ces valeurs avec les vôtres
     const firebaseConfig = {
       apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
       authDomain: "barbutracker.firebaseapp.com",
@@ -26,7 +26,7 @@
     const db = firebase.firestore();
   </script>
   <style>
-    /* Styles de base */
+    /* Animations et styles de base */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -97,6 +97,12 @@
       border-radius: 6px;
       color: #0f5132;
       margin-bottom: 10px;
+    }
+    /* Pour le temps de session (ajouté) */
+    #session-time {
+      font-size: 1.2em;
+      color: #333;
+      margin-top: 10px;
     }
     .achievement {
       background: #e8f0fe;
@@ -222,6 +228,7 @@
           <h3>Classement de la session</h3>
           <ul id="session-ranking-list"></ul>
         </div>
+        <div id="session-time"></div>
         <div id="last-party-summary">
           <h3>Résumé de la dernière partie</h3>
           <ul id="last-party-list"></ul>

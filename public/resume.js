@@ -1,6 +1,5 @@
 // resume.js
 document.addEventListener('DOMContentLoaded', function() {
-  // Récupère les paramètres d'URL
   function getQueryParams() {
     const params = new URLSearchParams(window.location.search);
     return {
@@ -9,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
-  // Charge les données depuis Firestore
   async function loadData() {
     try {
       const saisonsSnapshot = await db.collection('saisons').get();
@@ -27,7 +25,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Affiche le résumé en fonction du type (saison, session, partie)
+  function createRankingChart(rankingArray) {
+    // Crée un graphique en barres pour le classement
+    const ctx = document.getElementById('rankingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: rankingArray.map(item => item[0]),
+        datasets: [{
+          label: 'Score',
+          data: rankingArray.map(item => item[1]),
+          backgroundColor: 'rgba(74,144,226,0.5)',
+          borderColor: 'rgba(74,144,226,1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
   function renderResume(data, type, id) {
     const container = document.getElementById('resume-content');
     let html = "";
@@ -46,10 +69,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const sessions = data.sessions.filter(sess => sess.saisonId === saison.id);
         html += `<div class="info-section"><p><strong>Nombre de sessions :</strong> ${sessions.length}</p>`;
         let totalParties = 0;
-        sessions.forEach(sess => {
-          totalParties += data.parties.filter(p => p.sessionId === sess.id).length;
+        sessions.forEach(function(sess) {
+          totalParties += data.parties.filter(function(p) { return p.sessionId === sess.id; }).length;
         });
         html += `<p><strong>Total de parties :</strong> ${totalParties}</p></div>`;
+        // Calcul du classement pour la saison
+        let seasonScores = {};
+        sessions.forEach(function(sess) {
+          const parties = data.parties.filter(function(p) { return p.sessionId === sess.id && p.finished; });
+          parties.forEach(function(party) {
+            Object.entries(party.scores).forEach(function([player, score]) {
+              seasonScores[player] = (seasonScores[player] || 0) + score;
+            });
+          });
+        });
+        const seasonRanking = Object.entries(seasonScores).sort(function(a, b) { return a[1] - b[1]; });
+        if (seasonRanking.length > 0) {
+          html += `<h3>Classement de la saison</h3>`;
+          html += "<ul class='detail-list'>";
+          seasonRanking.forEach(function([player, score], index) {
+            let emoji = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
+            html += `<li>${emoji} ${index+1}. ${player}: ${score}</li>`;
+          });
+          html += "</ul>";
+          html += `<h3>Graphique des scores</h3><canvas id="rankingChart"></canvas>`;
+          // Création du graphique après l'insertion du canvas
+          setTimeout(() => createRankingChart(seasonRanking), 100);
+        }
       }
     } else if (type === 'session') {
       const session = data.sessions.find(s => s.id === id);
@@ -63,6 +109,25 @@ document.addEventListener('DOMContentLoaded', function() {
         html += `<p><strong>Status :</strong> ${session.finished ? "Terminée" : "Active"}</p></div>`;
         const parties = data.parties.filter(p => p.sessionId === session.id);
         html += `<div class="info-section"><p><strong>Nombre de parties :</strong> ${parties.length}</p></div>`;
+        // Classement de la session
+        let sessionScores = {};
+        parties.filter(p => p.finished).forEach(function(party) {
+          Object.entries(party.scores).forEach(function([player, score]) {
+            sessionScores[player] = (sessionScores[player] || 0) + score;
+          });
+        });
+        const sessionRanking = Object.entries(sessionScores).sort(function(a, b) { return a[1] - b[1]; });
+        if (sessionRanking.length > 0) {
+          html += `<h3>Classement de la session</h3>`;
+          html += "<ul class='detail-list'>";
+          sessionRanking.forEach(function([player, score], index) {
+            let emoji = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
+            html += `<li>${emoji} ${index+1}. ${player}: ${score}</li>`;
+          });
+          html += "</ul>";
+          html += `<h3>Graphique des scores</h3><canvas id="rankingChart"></canvas>`;
+          setTimeout(() => createRankingChart(sessionRanking), 100);
+        }
       }
     } else if (type === 'partie') {
       const party = data.parties.find(p => p.id === id);
@@ -78,11 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           html += `<h3>Scores</h3>`;
           html += `<ul class="detail-list">`;
-          Object.entries(party.scores).forEach(([player, score]) => {
+          Object.entries(party.scores).forEach(function([player, score]) {
             html += `<li><strong>${player}</strong>: ${score !== null ? score : "-"}</li>`;
           });
           html += `</ul>`;
-          const totalScore = Object.values(party.scores).reduce((acc, val) => acc + (val || 0), 0);
+          const totalScore = Object.values(party.scores).reduce(function(acc, val) { return acc + (val || 0); }, 0);
           html += `<p><strong>Total des scores :</strong> ${totalScore}</p>`;
         }
       }
@@ -107,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
     container.innerHTML = html;
   }
 
-  // Initialisation de la page Resume
   (async function initResume() {
     const params = getQueryParams();
     const data = await loadData();

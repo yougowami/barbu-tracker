@@ -26,7 +26,7 @@
     const db = firebase.firestore();
   </script>
   <style>
-    /* Styles spécifiques pour la page Résumé */
+    /* Styles pour la page Résumé */
     body {
       background: #f0f4f8;
       margin: 0;
@@ -129,6 +129,11 @@
     .back-button:hover {
       background: #357ABD;
     }
+    /* Style pour le graphique */
+    #rankingChart {
+      max-width: 100%;
+      margin: 20px auto;
+    }
   </style>
 </head>
 <body>
@@ -140,6 +145,7 @@
     </nav>
     <div class="resume-container" id="resume-content">
       <!-- Le contenu sera injecté dynamiquement -->
+      <canvas id="rankingChart"></canvas>
     </div>
     <p style="text-align:center;"><a class="back-button" href="index.html"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a></p>
   </main>
