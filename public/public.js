@@ -243,10 +243,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     // Succès supplémentaires (exemple statique)
-    let mostConsistentPlayer = "N/A", mostConsistentValue = "N/A";
-    let biggestImprovementPlayer = "N/A", biggestImprovementValue = "N/A";
-    let mostSurprisingPlayer = "N/A", mostSurprisingValue = "N/A";
-    let playerOfTheWeek = "N/A", playerOfTheWeekValue = "N/A";
+    let mostConsistentPlayer = "Bientôt", mostConsistentValue = "Bientôt";
+    let biggestImprovementPlayer = "Bientôt", biggestImprovementValue = "Bientôt";
+    let mostSurprisingPlayer = "Bientôt", mostSurprisingValue = "Bientôt";
+    let playerOfTheWeek = "Bientôt", playerOfTheWeekValue = "N/A";
 
     document.getElementById('mostPoints').innerHTML = `<i class="fas fa-crown"></i><p>Plus de points: ${mostPointsPlayer} (${mostPoints})</p>`;
     document.getElementById('leastPoints').innerHTML = `<i class="fas fa-medal"></i><p>Moins de points: ${leastPointsPlayer} (${leastPoints})</p>`;
