@@ -12,9 +12,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   
-  <!-- Initialisation Firebase (doit être avant admin.js) -->
+  <!-- Initialisation Firebase (doit être chargé avant admin.js) -->
   <script>
-    // Remplacez ces valeurs par celles de votre projet Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBUQQyQbhnlFZTSlQ8_jhdhHj6Mjg0hya8",
       authDomain: "barbutracker.firebaseapp.com",
@@ -32,7 +31,7 @@
   <script src="admin.js" defer></script>
   
   <style>
-    /* Styles simplifiés pour cette page */
+    /* Styles généraux */
     body {
       font-family: Arial, sans-serif;
       background: #eef2f7;
@@ -45,12 +44,13 @@
       padding: 20px;
       text-align: center;
       font-size: 2em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 20px auto;
     }
-    /* Formulaire de connexion */
+    /* Conteneur de connexion */
     #loginContainer {
       max-width: 400px;
       margin: 50px auto;
@@ -82,12 +82,13 @@
     #adminContent {
       display: none;
     }
-    /* Styles pour les formulaires d'ajout */
+    /* Formulaires d'ajout */
     .admin-container {
       background: #fff;
       padding: 15px;
       margin: 15px auto;
       border-radius: 8px;
+      max-width: 500px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .admin-container h2 {
@@ -95,17 +96,16 @@
       color: #4A90E2;
       margin-bottom: 10px;
     }
-    form {
-      margin-bottom: 15px;
-    }
     form input, form select {
       width: 100%;
       padding: 8px;
-      margin: 5px 0;
+      margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      box-sizing: border-box;
     }
     form button {
+      margin-top: 15px;
       padding: 10px;
       background: #4A90E2;
       color: white;
@@ -116,7 +116,20 @@
     form button:hover {
       background: #357ABD;
     }
-    /* Liste des parties actives */
+    /* Sections d'affichage des éléments actifs */
+    .data-section {
+      background: #fff;
+      padding: 15px;
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 500px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .data-section h2 {
+      text-align: center;
+      color: #4A90E2;
+      margin-bottom: 10px;
+    }
     .data-list {
       list-style: none;
       padding: 0;
@@ -128,16 +141,43 @@
       justify-content: space-between;
       align-items: center;
     }
-    .delete-btn {
+    .data-list li:last-child {
+      border-bottom: none;
+    }
+    .delete-btn, .finish-btn {
       background: #e74c3c;
       color: white;
       border: none;
       padding: 5px 10px;
       border-radius: 4px;
       cursor: pointer;
+      margin-left: 5px;
+    }
+    .finish-btn {
+      background: #27ae60;
     }
     .delete-btn:hover {
       background: #c0392b;
+    }
+    .finish-btn:hover {
+      background: #1e8449;
+    }
+    /* Pied de page avec mentions légales */
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      background: #f8f8f8;
+      text-align: center;
+      font-size: 0.9em;
+      color: #666;
+      border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #4A90E2;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -154,9 +194,9 @@
     </form>
   </div>
   
-  <!-- Contenu admin (seulement visible après authentification) -->
+  <!-- Contenu admin (visible uniquement après authentification) -->
   <div id="adminContent" class="container">
-    <!-- Formulaire d'ajout d'une saison -->
+    <!-- Formulaire d'ajout d'une Saison -->
     <div class="admin-container">
       <h2>Ajouter une Saison</h2>
       <form id="seasonForm">
@@ -166,7 +206,7 @@
       </form>
     </div>
     
-    <!-- Formulaire d'ajout d'une session -->
+    <!-- Formulaire d'ajout d'une Session -->
     <div class="admin-container">
       <h2>Ajouter une Session</h2>
       <form id="sessionForm">
@@ -178,7 +218,7 @@
       </form>
     </div>
     
-    <!-- Formulaire d'ajout d'une partie -->
+    <!-- Formulaire d'ajout d'une Partie -->
     <div class="admin-container">
       <h2>Ajouter une Partie</h2>
       <form id="partyForm">
@@ -193,11 +233,48 @@
       </form>
     </div>
     
-    <!-- Section d'affichage des parties actives -->
-    <div class="admin-container">
-      <h2>Parties Actives</h2>
-      <ul class="data-list" id="activePartiesList"></ul>
+    <!-- Affichage des Saisons Actives -->
+    <div class="data-section">
+      <h2>Saisons Actives</h2>
+      <ul class="data-list" id="activeSeasonsList"></ul>
+    </div>
+    
+    <!-- Affichage des Sessions Actives -->
+    <div class="data-section">
+      <h2>Sessions Actives</h2>
+      <ul class="data-list" id="activeSessionsList"></ul>
+    </div>
+    
+    <!-- Section Historique -->
+    <div class="data-section" id="history-section">
+      <button class="history-button" id="viewHistoryBtn">Voir l'historique</button>
+      <div class="history-form" id="historyForm">
+        <label for="historySeason">Sélectionnez une Saison :</label>
+        <select id="historySeason">
+          <option value="">-- Saison --</option>
+        </select>
+        <label for="historySession">Sélectionnez une Session :</label>
+        <select id="historySession">
+          <option value="">-- Session --</option>
+        </select>
+        <label for="historyParty">Sélectionnez une Partie :</label>
+        <select id="historyParty">
+          <option value="">-- Partie --</option>
+        </select>
+        <button id="goToResumeBtn">Voir le Résumé</button>
+      </div>
     </div>
   </div>
+  
+  <!-- Pied de page avec mentions légales -->
+  <footer>
+    <p>Mentions légales :</p>
+    <p>
+      Propriétaire : Hugo Amistani<br>
+      Contact : <a href="mailto:hugo.amistani82000@gmail.com">hugo.amistani82000@gmail.com</a><br>
+      Hébergement : Firebase<br>
+      Conformément à la loi n°2004-575 du 21 juin 2004 pour la confiance dans l’économie numérique, vous disposez d’un droit d’accès, de rectification et de suppression des informations vous concernant.
+    </p>
+  </footer>
 </body>
 </html>

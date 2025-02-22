@@ -180,20 +180,28 @@
     .history-form button:hover {
       background: #357ABD;
     }
+    /* Pied de page avec mentions légales */
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      background: #f8f8f8;
+      text-align: center;
+      font-size: 0.9em;
+      color: #666;
+      border-top: 1px solid #ddd;
+    }
+    footer a {
+      color: #4A90E2;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <header>Barbu Tracker - Tableau de Bord</header>
   <main>
-    <section>
-    <h2>Informations</h2>
-        <p>Scores de la saison 1 ajoutés !</p>
-        <p>Scores de la saison 2 en cours...</p>
-        <p>Scores de la saison 3 à venir</p>
-        <p>Certains champs peuvent être vide. Certaines parties de l'interce vont être retravaillées.</p>
-        <p>La lecture de la BD peut être désactivée temporairement si des modifications sont en cours.</p>
-    </section>
-
     <!-- Section Résumé de la semaine -->
     <section id="weekly-summary-section">
       <h2>Résumé de la semaine</h2>
@@ -314,5 +322,16 @@
     
   </main>
   <script src="public.js"></script>
+
+  <!-- Pied de page avec mentions légales -->
+  <footer>
+    <p>Mentions légales :</p>
+    <p>
+      Propriétaire : Hugo Amistani<br>
+      Contact : <a href="mailto:hugo.amistani82000@gmail.com">hugo.amistani82000@gmail.com</a><br>
+      Hébergement : Firebase<br>
+      Conformément à la loi n°2004-575 du 21 juin 2004 pour la confiance dans l’économie numérique, vous disposez d’un droit d’accès, de rectification et de suppression des informations vous concernant.
+    </p>
+  </footer>
 </body>
 </html>

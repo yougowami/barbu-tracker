@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Vérifier l'état de connexion
+  // Vérification de l'état de connexion
   firebase.auth().onAuthStateChanged(function(user) {
     if (user && user.email === "hugo.amistani82000@gmail.com") {
       document.getElementById('loginContainer').style.display = "none";
@@ -26,11 +26,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function initAdmin() {
     loadSeasonsIntoDropdown();
     loadSessionsIntoDropdown();
-    renderActiveParties();
+    renderActiveSeasons();
+    renderActiveSessions();
     setupFormListeners();
   }
 
-  // Setup listeners pour les formulaires d'ajout
+  // Setup des formulaires d'ajout
   function setupFormListeners() {
     // Ajout d'une Saison
     document.getElementById('seasonForm').addEventListener('submit', async function(e) {
@@ -45,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         alert("Saison ajoutée");
         document.getElementById('seasonForm').reset();
+        renderActiveSeasons();
         loadSeasonsIntoDropdown();
       } catch (err) {
         alert("Erreur lors de l'ajout de la saison : " + err.message);
@@ -65,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         alert("Session ajoutée");
         document.getElementById('sessionForm').reset();
+        renderActiveSessions();
         loadSessionsIntoDropdown();
       } catch (err) {
         alert("Erreur lors de l'ajout de la session : " + err.message);
@@ -94,14 +97,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         alert("Partie ajoutée");
         document.getElementById('partyForm').reset();
-        renderActiveParties();
+        // On ne rafraîchit pas l'affichage des parties actives puisque nous ne les affichons plus
       } catch (err) {
         alert("Erreur lors de l'ajout de la partie : " + err.message);
       }
     });
   }
 
-  // Charger les saisons actives dans le menu déroulant pour les sessions
+  // Charger et afficher les saisons actives
+  async function renderActiveSeasons() {
+    const snapshot = await db.collection('saisons').where('finished', '==', false).get();
+    const list = document.getElementById('activeSeasonsList');
+    list.innerHTML = "";
+    snapshot.forEach(doc => {
+      const season = doc.data();
+      const li = document.createElement('li');
+      li.textContent = `Saison: ${season.nom} - Fin: ${season.endDate}`;
+      const finishBtn = document.createElement('button');
+      finishBtn.textContent = "Terminer";
+      finishBtn.classList.add('finish-btn');
+      finishBtn.addEventListener('click', async function() {
+        if (confirm("Marquer cette saison comme terminée ?")) {
+          await db.collection('saisons').doc(doc.id).update({ finished: true });
+          renderActiveSeasons();
+          loadSeasonsIntoDropdown();
+        }
+      });
+      li.appendChild(finishBtn);
+      list.appendChild(li);
+    });
+  }
+
+  // Charger et afficher les sessions actives
+  async function renderActiveSessions() {
+    const snapshot = await db.collection('sessions').where('finished', '==', false).get();
+    const list = document.getElementById('activeSessionsList');
+    list.innerHTML = "";
+    snapshot.forEach(doc => {
+      const session = doc.data();
+      const li = document.createElement('li');
+      li.textContent = `Session: ${session.date} (Saison: ${session.saisonId})`;
+      const finishBtn = document.createElement('button');
+      finishBtn.textContent = "Terminer";
+      finishBtn.classList.add('finish-btn');
+      finishBtn.addEventListener('click', async function() {
+        if (confirm("Marquer cette session comme terminée ?")) {
+          await db.collection('sessions').doc(doc.id).update({ finished: true });
+          renderActiveSessions();
+          loadSessionsIntoDropdown();
+        }
+      });
+      li.appendChild(finishBtn);
+      list.appendChild(li);
+    });
+  }
+
+  // Charger les saisons actives dans le menu déroulant
   async function loadSeasonsIntoDropdown() {
     const snapshot = await db.collection('saisons').where('finished', '==', false).get();
     const dropdown = document.getElementById('sessionSeason');
@@ -112,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Charger les sessions actives dans le menu déroulant pour les parties
+  // Charger les sessions actives dans le menu déroulant
   async function loadSessionsIntoDropdown() {
     const snapshot = await db.collection('sessions').where('finished', '==', false).get();
     const dropdown = document.getElementById('partySession');
@@ -123,62 +174,85 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Fonction pour mettre à jour les dropdowns (saisons et sessions)
-  function loadSeasonsIntoDropdown() {
-    db.collection('saisons').where('finished', '==', false).get()
-      .then(snapshot => {
-        const dropdown = document.getElementById('sessionSeason');
-        dropdown.innerHTML = '<option value="">-- Sélectionnez une saison --</option>';
-        snapshot.forEach(doc => {
-          const season = doc.data();
-          dropdown.innerHTML += `<option value="${doc.id}">${season.nom}</option>`;
-        });
-      });
-  }
-  
-  function loadSessionsIntoDropdown() {
-    db.collection('sessions').where('finished', '==', false).get()
-      .then(snapshot => {
-        const dropdown = document.getElementById('partySession');
-        dropdown.innerHTML = '<option value="">-- Sélectionnez une session --</option>';
-        snapshot.forEach(doc => {
-          const session = doc.data();
-          dropdown.innerHTML += `<option value="${doc.id}">${session.date}</option>`;
-        });
-      });
-  }
-  
-  // Afficher les parties actives et permettre leur suppression
-  async function renderActiveParties() {
-    const snapshot = await db.collection('parties').where('finished', '==', false).get();
-    const list = document.getElementById('activePartiesList');
-    list.innerHTML = "";
-    snapshot.forEach(doc => {
-      const party = doc.data();
-      const li = document.createElement('li');
-      li.textContent = `Partie ${doc.id} - Session: ${party.sessionId} - Scores: Hugo: ${party.scores?.Hugo || 0}, Léo: ${party.scores?.["Léo"] || 0}, Gabriel: ${party.scores?.Gabriel || 0}, Guillaume: ${party.scores?.Guillaume || 0}`;
-      const delBtn = document.createElement('button');
-      delBtn.textContent = "Supprimer";
-      delBtn.classList.add('delete-btn');
-      delBtn.addEventListener('click', async function() {
-        if (confirm("Voulez-vous vraiment supprimer cette partie ?")) {
-          await db.collection('parties').doc(doc.id).delete();
-          renderActiveParties();
-        }
-      });
-      li.appendChild(delBtn);
-      list.appendChild(li);
+  // Section Historique
+  async function populateHistoryDropdowns() {
+    const seasonsSnapshot = await db.collection('saisons').get();
+    const sessionsSnapshot = await db.collection('sessions').get();
+    const historySeason = document.getElementById('historySeason');
+    historySeason.innerHTML = '<option value="">-- Saison --</option>';
+    seasonsSnapshot.forEach(doc => {
+      const season = doc.data();
+      historySeason.innerHTML += `<option value="${doc.id}">${season.nom}</option>`;
     });
+    document.getElementById('historySession').innerHTML = '<option value="">-- Session --</option>';
+    document.getElementById('historyParty').innerHTML = '<option value="">-- Partie --</option>';
   }
-  
-  // Initialisation
-  function initAdmin() {
-    loadSeasonsIntoDropdown();
-    loadSessionsIntoDropdown();
-    renderActiveParties();
-    setupFormListeners();
+
+  document.getElementById('historySeason').addEventListener('change', async function(e) {
+    const seasonId = e.target.value;
+    const sessionsSnapshot = await db.collection('sessions').where('saisonId', '==', seasonId).get();
+    const historySession = document.getElementById('historySession');
+    historySession.innerHTML = '<option value="">-- Session --</option>';
+    sessionsSnapshot.forEach(doc => {
+      const session = doc.data();
+      historySession.innerHTML += `<option value="${doc.id}">${session.date}</option>`;
+    });
+    document.getElementById('historyParty').innerHTML = '<option value="">-- Partie --</option>';
+  });
+
+  document.getElementById('historySession').addEventListener('change', async function(e) {
+    const sessionId = e.target.value;
+    const partiesSnapshot = await db.collection('parties').where('sessionId', '==', sessionId).get();
+    const historyParty = document.getElementById('historyParty');
+    historyParty.innerHTML = '<option value="">-- Partie --</option>';
+    partiesSnapshot.forEach(doc => {
+      historyParty.innerHTML += `<option value="${doc.id}">${doc.id}</option>`;
+    });
+  });
+
+  document.getElementById('goToResumeBtn').addEventListener('click', function() {
+    const seasonId = document.getElementById('historySeason').value;
+    const sessionId = document.getElementById('historySession').value;
+    const partyId = document.getElementById('historyParty').value;
+    let url = "resume.html?";
+    if (partyId) {
+      url += "type=partie&id=" + encodeURIComponent(partyId);
+    } else if (sessionId) {
+      url += "type=session&id=" + encodeURIComponent(sessionId);
+    } else if (seasonId) {
+      url += "type=saison&id=" + encodeURIComponent(seasonId);
+    } else {
+      alert("Veuillez sélectionner au moins une saison.");
+      return;
+    }
+    window.location.href = url;
+  });
+
+  document.getElementById('viewHistoryBtn').addEventListener('click', function() {
+    const historyForm = document.getElementById('historyForm');
+    if (historyForm.style.display === "none" || historyForm.style.display === "") {
+      historyForm.style.display = "block";
+      populateHistoryDropdowns();
+    } else {
+      historyForm.style.display = "none";
+    }
+  });
+
+  // Fonction globale pour mettre à jour tous les éléments affichés (saisons et sessions)
+  async function renderDashboard() {
+    await renderActiveSeasons();
+    await renderActiveSessions();
   }
-  
-  // Expose functions globally si besoin
-  window.renderActiveParties = renderActiveParties;
+
+  // Déclaration pour que populateDropdowns soit accessible globalement
+  async function populateDropdowns() {
+    await loadSeasonsIntoDropdown();
+    await loadSessionsIntoDropdown();
+  }
+
+  function init() {
+    window.populateDropdowns = populateDropdowns;
+    renderDashboard();
+  }
+  init();
 });
