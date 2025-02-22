@@ -31,20 +31,21 @@
   <script src="admin.js" defer></script>
   
   <style>
-    /* Styles généraux */
+    /* Styles généraux en dark mode */
     body {
       font-family: Arial, sans-serif;
-      background: #eef2f7;
+      background: #121212;
       margin: 0;
       padding: 20px;
+      color: #e0e0e0;
     }
     header {
-      background: #4A90E2;
-      color: white;
+      background: #1e1e1e;
+      color: #fff;
       padding: 20px;
       text-align: center;
       font-size: 2em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
     }
     .container {
       max-width: 1200px;
@@ -55,17 +56,19 @@
       max-width: 400px;
       margin: 50px auto;
       padding: 20px;
-      background: #fff;
+      background: #1e1e1e;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
       text-align: center;
     }
     #loginContainer input {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
-      border: 1px solid #ccc;
+      border: 1px solid #444;
       border-radius: 4px;
+      background: #121212;
+      color: #e0e0e0;
     }
     #loginContainer button {
       padding: 10px 20px;
@@ -84,12 +87,12 @@
     }
     /* Formulaires d'ajout */
     .admin-container {
-      background: #fff;
+      background: #1e1e1e;
       padding: 15px;
       margin: 15px auto;
       border-radius: 8px;
       max-width: 500px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
     }
     .admin-container h2 {
       text-align: center;
@@ -100,9 +103,11 @@
       width: 100%;
       padding: 8px;
       margin-top: 5px;
-      border: 1px solid #ccc;
+      border: 1px solid #444;
       border-radius: 4px;
       box-sizing: border-box;
+      background: #121212;
+      color: #e0e0e0;
     }
     form button {
       margin-top: 15px;
@@ -118,12 +123,12 @@
     }
     /* Sections d'affichage des éléments actifs */
     .data-section {
-      background: #fff;
+      background: #1e1e1e;
       padding: 15px;
       margin: 15px auto;
       border-radius: 8px;
       max-width: 500px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
     }
     .data-section h2 {
       text-align: center;
@@ -136,7 +141,7 @@
     }
     .data-list li {
       padding: 10px;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid #444;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -162,15 +167,59 @@
     .finish-btn:hover {
       background: #1e8449;
     }
-    /* Pied de page avec mentions légales */
+    /* Bouton d'historique (si utilisé dans la page admin) */
+    .history-button {
+      display: block;
+      margin: 30px auto;
+      padding: 12px 20px;
+      background: #4A90E2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 1em;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .history-button:hover {
+      background: #357ABD;
+    }
+    .history-form {
+      max-width: 500px;
+      margin: 20px auto;
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+      display: none;
+    }
+    .history-form select, .history-form button {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #121212;
+      color: #e0e0e0;
+    }
+    .history-form button {
+      background: #4A90E2;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .history-form button:hover {
+      background: #357ABD;
+    }
+    /* Pied de page */
     footer {
       margin-top: 40px;
       padding: 20px;
-      background: #f8f8f8;
+      background: #1e1e1e;
       text-align: center;
       font-size: 0.9em;
-      color: #666;
-      border-top: 1px solid #ddd;
+      color: #bbb;
+      border-top: 1px solid #333;
     }
     footer a {
       color: #4A90E2;
@@ -266,7 +315,7 @@
     </div>
   </div>
   
-  <!-- Pied de page avec mentions légales -->
+  <!-- Pied de page -->
   <footer>
     <p>Mentions légales :</p>
     <p>

@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Barbu Tracker - Résumé détaillé</title>
-  <link rel="stylesheet" href="styles.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Firebase SDK (compat) -->
@@ -26,19 +25,20 @@
     const db = firebase.firestore();
   </script>
   <style>
-    /* Styles pour la page Résumé */
+    /* Dark mode pour la page Résumé détaillé */
     body {
-      background: #f0f4f8;
+      background: #121212;
       margin: 0;
       font-family: Arial, sans-serif;
+      color: #e0e0e0;
     }
     header {
-      background: #4A90E2;
+      background: #1e1e1e;
       color: #fff;
       padding: 15px 20px;
       text-align: center;
       font-size: 1.8em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
     }
     main {
       max-width: 800px;
@@ -59,10 +59,10 @@
       text-decoration: underline;
     }
     .resume-container {
-      background: #fff;
+      background: #1e1e1e;
       border-radius: 8px;
       padding: 30px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
       animation: fadeInUp 0.5s ease-out;
     }
     @keyframes fadeInUp {
@@ -87,7 +87,7 @@
     }
     .ranking-table th, .ranking-table td {
       padding: 10px;
-      border: 1px solid #ddd;
+      border: 1px solid #444;
       text-align: left;
     }
     .ranking-table th {
@@ -101,13 +101,13 @@
     }
     .detail-list li {
       padding: 8px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #333;
     }
     .detail-list li:last-child {
       border-bottom: none;
     }
     .quote-section {
-      background: #e8f0fe;
+      background: #333;
       padding: 15px;
       border-radius: 6px;
       margin: 20px 0;
@@ -134,15 +134,15 @@
       max-width: 100%;
       margin: 20px auto;
     }
-    /* Pied de page avec mentions légales */
+    /* Pied de page */
     footer {
       margin-top: 40px;
       padding: 20px;
-      background: #f8f8f8;
+      background: #1e1e1e;
       text-align: center;
       font-size: 0.9em;
-      color: #666;
-      border-top: 1px solid #ddd;
+      color: #bbb;
+      border-top: 1px solid #333;
     }
     footer a {
       color: #4A90E2;
@@ -164,11 +164,13 @@
       <!-- Le contenu sera injecté dynamiquement -->
       <canvas id="rankingChart"></canvas>
     </div>
-    <p style="text-align:center;"><a class="back-button" href="index.html"><i class="fas fa-arrow-left"></i> Retour au Tableau de Bord</a></p>
+    <p style="text-align:center;">
+      <a class="back-button" href="index.html">
+        <i class="fas fa-arrow-left"></i> Retour au Tableau de Bord
+      </a>
+    </p>
   </main>
   <script src="resume.js"></script>
-
-  <!-- Pied de page avec mentions légales -->
   <footer>
     <p>Mentions légales :</p>
     <p>

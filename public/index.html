@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Barbu Tracker - Tableau de Bord</title>
-  <link rel="stylesheet" href="styles.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Firebase SDK (compat) -->
@@ -26,23 +25,20 @@
     const db = firebase.firestore();
   </script>
   <style>
-    /* Animations et styles de base */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* Dark mode global */
     body {
-      background: #f0f4f8;
+      background: #121212;
       margin: 0;
       font-family: Arial, sans-serif;
+      color: #e0e0e0;
     }
     header {
-      background: #4A90E2;
-      color: white;
+      background: #1e1e1e;
+      color: #fff;
       padding: 20px;
       text-align: center;
       font-size: 2em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
     }
     main {
       max-width: 1200px;
@@ -64,48 +60,49 @@
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
     }
+    /* Cartes et informations */
     .card {
-      background: white;
+      background: #1e1e1e;
       border-radius: 8px;
       padding: 20px;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
       animation: fadeInUp 0.5s ease-out;
       transition: transform 0.3s, box-shadow 0.3s;
     }
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
     }
     .card i {
       font-size: 2em;
-      color: #4A90E2;
       margin-bottom: 10px;
+      /* La couleur des icônes dans les cartes reste définie par section */
     }
     .card h3 {
       margin: 10px 0;
-      color: #333;
+      color: #e0e0e0;
       font-size: 1.2em;
     }
     .card p, .card div {
       font-size: 1.4em;
-      color: #555;
+      color: #b0b0b0;
     }
     .season-info, .session-info {
-      background: #d1e7dd;
+      background: #1e1e1e;
       padding: 10px;
       border-radius: 6px;
-      color: #0f5132;
+      color: #e0e0e0;
       margin-bottom: 10px;
     }
-    /* Pour le temps de session (ajouté) */
     #session-time {
       font-size: 1.2em;
-      color: #333;
+      color: #e0e0e0;
       margin-top: 10px;
     }
+    /* Succès / Achievements */
     .achievement {
-      background: #e8f0fe;
+      background: #333;
       padding: 10px;
       border-radius: 6px;
       font-style: italic;
@@ -116,11 +113,12 @@
       justify-content: center;
       gap: 8px;
     }
+    /* Classement général */
     .general-leaderboard {
-      background: white;
+      background: #1e1e1e;
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
       animation: fadeInUp 0.5s ease-out;
     }
     .general-leaderboard ul {
@@ -131,11 +129,19 @@
     }
     .general-leaderboard li {
       padding: 8px;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .general-leaderboard li:last-child {
       border-bottom: none;
     }
+    .general-leaderboard li span {
+      font-weight: bold;
+      color: #4A90E2;
+    }
+    /* Historique */
     .history-button {
       display: block;
       margin: 30px auto;
@@ -155,40 +161,39 @@
     .history-form {
       max-width: 500px;
       margin: 20px auto;
-      background: #fff;
+      background: #1e1e1e;
       padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
       display: none;
     }
-    .history-form select {
+    .history-form select, .history-form button {
       width: 100%;
       padding: 8px;
       margin: 8px 0;
-      border: 1px solid #ccc;
+      border: 1px solid #444;
       border-radius: 4px;
+      background: #121212;
+      color: #e0e0e0;
     }
     .history-form button {
-      width: 100%;
-      padding: 10px;
       background: #4A90E2;
       color: #fff;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
     }
     .history-form button:hover {
       background: #357ABD;
     }
-    /* Pied de page avec mentions légales */
+    /* Pied de page */
     footer {
       margin-top: 40px;
       padding: 20px;
-      background: #f8f8f8;
+      background: #1e1e1e;
       text-align: center;
       font-size: 0.9em;
-      color: #666;
-      border-top: 1px solid #ddd;
+      color: #bbb;
+      border-top: 1px solid #333;
     }
     footer a {
       color: #4A90E2;
@@ -197,9 +202,92 @@
     footer a:hover {
       text-decoration: underline;
     }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Écran de chargement */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #121212;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+      flex-direction: column;
+    }
+    .loading-content {
+      text-align: center;
+    }
+    /* Agrandissement des icônes pour un effet visuel marquant */
+    .loading-content i {
+      font-size: 4em;
+      margin: 0 15px;
+    }
+    /* Le coeur en rouge avec animation "pulse" */
+    .loading-content .fa-heart {
+      color: red;
+      animation: pulse 1s infinite;
+    }
+    /* La couronne avec animation de rotation */
+    .loading-content .fa-crown {
+      color: #4A90E2;
+      animation: rotate 2s linear infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    /* Barre de chargement */
+    .progress-container {
+      width: 300px;
+      height: 10px;
+      background: #333;
+      border-radius: 5px;
+      margin: 20px auto 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #4A90E2;
+      animation: progressFill 1.5s linear forwards;
+    }
+    @keyframes progressFill {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    /* Message d'information */
+    .loading-text {
+      margin-top: 15px;
+      font-size: 1.2em;
+      color: #e0e0e0;
+    }
   </style>
 </head>
 <body>
+  <!-- Écran de chargement avec icônes, message et barre de progression -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-crown"></i>
+      <p class="loading-text">Chargement des données en cours...</p>
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+  
   <header>Barbu Tracker - Tableau de Bord</header>
   <main>
     <!-- Section Résumé de la semaine -->
@@ -322,8 +410,20 @@
     
   </main>
   <script src="public.js"></script>
-
-  <!-- Pied de page avec mentions légales -->
+  <script>
+    // Après le chargement du DOM, l'écran de chargement reste visible pendant au moins 1.5s
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        var loader = document.getElementById('loading-screen');
+        if(loader) {
+          loader.style.opacity = '0';
+          setTimeout(function() {
+            loader.style.display = 'none';
+          }, 500); // Animation de fade-out de 0.5s
+        }
+      }, 1500);
+    });
+  </script>
   <footer>
     <p>Mentions légales :</p>
     <p>

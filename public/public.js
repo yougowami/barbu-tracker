@@ -189,15 +189,32 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function computeAchievements(data) {
+    // Pour les succès existants : agrégation, victoires et défaites
     const aggregatedScores = {};
     const defeatCounts = {};
     const winCounts = {};
+    // Pour "Le plus constant" et "Le plus amélioré", on collecte tous les scores par joueur
+    const playerScores = {};
+    // Pour "Le plus surprenant", on calculera l'écart maximal par partie pour chaque joueur
+    const playerSurprises = {};
+  
     data.parties.forEach(function(party) {
       if (!party.finished) return;
       const scores = party.scores;
+  
+      // Enregistrement des scores pour chaque joueur
       Object.entries(scores).forEach(function([player, score]) {
         aggregatedScores[player] = (aggregatedScores[player] || 0) + score;
+        if (!playerScores[player]) {
+          playerScores[player] = [];
+        }
+        playerScores[player].push({
+          score: score,
+          time: party.createdAt ? party.createdAt.toDate() : new Date(0)
+        });
       });
+  
+      // Calcul des victoires/défaites sur la partie (meilleur score = victoire, pire score = défaite)
       const players = Object.keys(scores);
       let minScore = Infinity, maxScore = -Infinity;
       players.forEach(function(player) {
@@ -213,7 +230,19 @@ document.addEventListener('DOMContentLoaded', function() {
           defeatCounts[player] = (defeatCounts[player] || 0) + 1;
         }
       });
+  
+      // Pour "Le plus surprenant" : calculer l'écart entre le score du joueur et la moyenne de la partie
+      const partyScores = Object.values(scores);
+      const partyAvg = partyScores.reduce((sum, val) => sum + val, 0) / partyScores.length;
+      Object.entries(scores).forEach(function([player, score]) {
+        const deviation = Math.abs(score - partyAvg);
+        if (!playerSurprises[player] || deviation > playerSurprises[player]) {
+          playerSurprises[player] = deviation;
+        }
+      });
     });
+  
+    // Succès existants
     let mostPointsPlayer = "-", mostPoints = -Infinity;
     Object.entries(aggregatedScores).forEach(function([player, score]) {
       if (score > mostPoints) {
@@ -242,12 +271,84 @@ document.addEventListener('DOMContentLoaded', function() {
         mostWinsPlayer = player;
       }
     });
-    // Succès supplémentaires (exemple statique)
-    let mostConsistentPlayer = "Bientôt", mostConsistentValue = "Bientôt";
-    let biggestImprovementPlayer = "Bientôt", biggestImprovementValue = "Bientôt";
-    let mostSurprisingPlayer = "Bientôt", mostSurprisingValue = "Bientôt";
-    let playerOfTheWeek = "Bientôt", playerOfTheWeekValue = "N/A";
-
+  
+    // --- Le plus constant --- 
+    // On choisit le joueur dont l'intervalle (max - min) de scores sur les parties terminées est le plus faible
+    let mostConsistentPlayer = "-";
+    let mostConsistentValue = Infinity;
+    Object.entries(playerScores).forEach(function([player, scoreEntries]) {
+      if (scoreEntries.length < 2) return; // Nécessite au moins 2 parties
+      const scores = scoreEntries.map(entry => entry.score);
+      const range = Math.max(...scores) - Math.min(...scores);
+      if (range < mostConsistentValue) {
+        mostConsistentValue = range;
+        mostConsistentPlayer = player;
+      }
+    });
+    if (mostConsistentPlayer === "-") {
+      mostConsistentValue = "N/A";
+    } else {
+      mostConsistentValue = mostConsistentValue.toFixed(2);
+    }
+  
+    // --- Le plus amélioré --- 
+    // On calcule la différence entre le premier score et le dernier (ordonnés par le temps) pour chaque joueur
+    let biggestImprovementPlayer = "-";
+    let biggestImprovementValue = 0;
+    Object.entries(playerScores).forEach(function([player, scoreEntries]) {
+      if (scoreEntries.length < 2) return;
+      scoreEntries.sort((a, b) => a.time - b.time);
+      const firstScore = scoreEntries[0].score;
+      const lastScore = scoreEntries[scoreEntries.length - 1].score;
+      // Comme un score plus bas est meilleur, l'amélioration correspond à la réduction du score
+      const improvement = firstScore - lastScore;
+      if (improvement > biggestImprovementValue) {
+        biggestImprovementValue = improvement;
+        biggestImprovementPlayer = player;
+      }
+    });
+    biggestImprovementValue = biggestImprovementPlayer === "-" ? "N/A" : biggestImprovementValue.toFixed(2);
+  
+    // --- Le plus surprenant --- 
+    // Le joueur qui a eu, dans une partie, l'écart maximal par rapport à la moyenne
+    let mostSurprisingPlayer = "-";
+    let mostSurprisingValue = -Infinity;
+    Object.entries(playerSurprises).forEach(function([player, deviation]) {
+      if (deviation > mostSurprisingValue) {
+        mostSurprisingValue = deviation;
+        mostSurprisingPlayer = player;
+      }
+    });
+    mostSurprisingValue = mostSurprisingPlayer === "-" ? "N/A" : mostSurprisingValue.toFixed(2);
+  
+    // --- Joueur de la semaine ---
+    // On réutilise la logique de la section hebdomadaire : parmi les parties terminées durant la semaine, le joueur avec le score cumulé le plus bas gagne.
+    const today = new Date();
+    const weeklyScores = {};
+    data.parties.forEach(function(party) {
+      if (!party.finished) return;
+      const session = data.sessions.find(function(s) { return s.id === party.sessionId; });
+      if (session) {
+        const sessionDate = new Date(session.date);
+        const diffDays = (today - sessionDate) / (1000 * 60 * 60 * 24);
+        if (diffDays >= 0 && diffDays < 7) {
+          Object.entries(party.scores).forEach(function([player, score]) {
+            weeklyScores[player] = (weeklyScores[player] || 0) + score;
+          });
+        }
+      }
+    });
+    let playerOfTheWeek = "-";
+    let playerOfTheWeekValue = Infinity;
+    Object.entries(weeklyScores).forEach(function([player, score]) {
+      if (score < playerOfTheWeekValue) {
+        playerOfTheWeekValue = score;
+        playerOfTheWeek = player;
+      }
+    });
+    playerOfTheWeekValue = playerOfTheWeek === "-" ? "N/A" : playerOfTheWeekValue;
+  
+    // Mise à jour des éléments DOM
     document.getElementById('mostPoints').innerHTML = `<i class="fas fa-crown"></i><p>Plus de points: ${mostPointsPlayer} (${mostPoints})</p>`;
     document.getElementById('leastPoints').innerHTML = `<i class="fas fa-medal"></i><p>Moins de points: ${leastPointsPlayer} (${leastPoints})</p>`;
     document.getElementById('mostDefeats').innerHTML = `<i class="fas fa-skull-crossbones"></i><p>Plus de défaites: ${mostDefeatsPlayer} (${mostDefeats})</p>`;
@@ -257,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('mostSurprising').innerHTML = `<i class="fas fa-bolt"></i><p>Le plus surprenant: ${mostSurprisingPlayer} (${mostSurprisingValue})</p>`;
     document.getElementById('playerOfTheWeek').innerHTML = `<i class="fas fa-star"></i><p>Joueur de la semaine: ${playerOfTheWeek} (${playerOfTheWeekValue})</p>`;
   }
+  
 
   function updateGeneralLeaderboard(data) {
     let generalScores = {};
